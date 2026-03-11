@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useCartStore } from "@/store/useCartStore";
 
 export default function Header({
     onSearch,
@@ -14,12 +15,20 @@ export default function Header({
     onVegToggle?: (isVeg: boolean) => void
 }) {
     const [searchQuery, setSearchQuery] = useState("");
+    const [hydrated, setHydrated] = useState(false);
+    const getTotalItems = useCartStore((state) => state.getTotalItems);
+
+    useEffect(() => {
+        setHydrated(true);
+    }, []);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const query = e.target.value;
         setSearchQuery(query);
         if (onSearch) onSearch(query);
     };
+
+    const cartCount = hydrated ? getTotalItems() : 0;
 
     return (
         <motion.header
@@ -58,14 +67,16 @@ export default function Header({
                         className="relative flex items-center justify-center rounded-full h-10 w-10 bg-slate-100 dark:bg-slate-800 text-royal-blue dark:text-primary cursor-pointer shadow-sm"
                     >
                         <span className="material-symbols-outlined">shopping_bag</span>
-                        <motion.span
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 500, delay: 0.8 }}
-                            className="absolute -top-1 -right-1 bg-terracotta text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center shadow-md shadow-terracotta/30"
-                        >
-                            2
-                        </motion.span>
+                        {cartCount > 0 && (
+                            <motion.span
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 500 }}
+                                className="absolute -top-1 -right-1 bg-terracotta text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center shadow-md shadow-terracotta/30"
+                            >
+                                {cartCount}
+                            </motion.span>
+                        )}
                     </motion.div>
                 </Link>
             </div>

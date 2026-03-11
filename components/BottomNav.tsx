@@ -2,22 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useCartStore } from "@/store/useCartStore";
 
 export default function BottomNav() {
     const pathname = usePathname();
+    const [hydrated, setHydrated] = useState(false);
+    const getTotalItems = useCartStore((state) => state.getTotalItems);
+
+    useEffect(() => {
+        setHydrated(true);
+    }, []);
+
+    const cartCount = hydrated ? getTotalItems() : 0;
 
     const navItems = [
         { href: "/", icon: "home", label: "Home" },
         { href: "/menu", icon: "restaurant_menu", label: "Menu" },
-        { href: "/cart", icon: "shopping_bag", label: "Cart" },
+        { href: "/cart", icon: "shopping_bag", label: "Cart", badge: cartCount },
         { href: "/profile", icon: "account_circle", label: "Profile" },
     ];
 
     return (
         <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
-            {/* Cart overlay removed as it contained mock data. Real cart state integration needed. */}
-
             <div className="bg-white dark:bg-background-dark border-t border-slate-200 dark:border-slate-700 flex gap-1 px-3 pb-6 pt-3 pointer-events-auto shadow-[0_-4px_30px_-5px_rgba(0,0,0,0.12)] dark:shadow-[0_-4px_30px_-5px_rgba(0,0,0,0.6)]">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href;
@@ -36,7 +44,7 @@ export default function BottomNav() {
                             )}
                             <motion.div
                                 whileTap={{ scale: 0.8 }}
-                                className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 ${isActive
+                                className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 relative ${isActive
                                     ? "text-primary bg-primary/10"
                                     : "text-slate-400 dark:text-slate-500 hover:text-primary/70"
                                     }`}
@@ -47,6 +55,19 @@ export default function BottomNav() {
                                 >
                                     {item.icon}
                                 </span>
+
+                                <AnimatePresence>
+                                    {item.badge && item.badge > 0 && (
+                                        <motion.span
+                                            initial={{ scale: 0, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            exit={{ scale: 0, opacity: 0 }}
+                                            className="absolute -top-1 -right-1 bg-terracotta text-white text-[8px] font-black h-4 w-4 rounded-full flex items-center justify-center shadow-sm"
+                                        >
+                                            {item.badge}
+                                        </motion.span>
+                                    )}
+                                </AnimatePresence>
                             </motion.div>
                             <p
                                 className={`text-[9px] font-bold leading-normal tracking-wider uppercase transition-colors duration-200 ${isActive ? "text-primary" : "text-slate-400 dark:text-slate-500"
