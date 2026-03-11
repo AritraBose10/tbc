@@ -14,10 +14,12 @@ function MenuContent() {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("All");
     const [isVegOnly, setIsVegOnly] = useState(false);
+    const [hydrated, setHydrated] = useState(false);
 
-    const addItem = useCartStore((state) => state.addItem);
+    const { items: cartItems, addItem, updateQuantity } = useCartStore();
 
     useEffect(() => {
+        setHydrated(true);
         if (categoryParam) {
             setActiveCategory(categoryParam);
         }
@@ -37,6 +39,12 @@ function MenuContent() {
         });
         return items;
     }, []);
+
+    // Get quantity for a specific item
+    const getItemQuantity = (id: string) => {
+        if (!hydrated) return 0;
+        return cartItems.find(item => item.id === id)?.quantity || 0;
+    };
 
     // Memoize filtered items
     const filteredItems = useMemo(() => {
@@ -87,41 +95,67 @@ function MenuContent() {
 
                 {/* Menu Items Grid */}
                 <div className="grid grid-cols-1 gap-4">
-                    {filteredItems.map((item) => (
-                        <motion.div
-                            key={item.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-slate-50 dark:border-slate-700/50 flex items-center justify-between group hover:shadow-md transition-shadow"
-                        >
-                            <div className="flex-1 pr-4">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className={`w-3 h-3 border flex items-center justify-center p-[2px] ${item.isVeg ? 'border-green-600' : 'border-red-600'}`}>
-                                        <div className={`w-full h-full rounded-full ${item.isVeg ? 'bg-green-600' : 'bg-red-600'}`}></div>
-                                    </span>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.category}</span>
-                                </div>
-                                <h3 className="text-sm font-black text-slate-800 dark:text-white mb-1 group-hover:text-terracotta transition-colors">{item.name}</h3>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-black text-royal-blue dark:text-primary">₹{item.price}</span>
-                                </div>
-                            </div>
+                    {filteredItems.map((item) => {
+                        const quantity = getItemQuantity(item.id);
 
-                            <motion.button
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => addItem({
-                                    id: item.id,
-                                    name: item.name,
-                                    price: Number(item.price),
-                                    image: item.image || "https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?auto=format&fit=crop&q=80&w=200",
-                                    portion: "Standard"
-                                })}
-                                className="h-10 px-4 bg-primary/10 dark:bg-primary/5 text-royal-blue dark:text-primary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all border border-primary/20"
+                        return (
+                            <motion.div
+                                key={item.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-slate-50 dark:border-slate-700/50 flex items-center justify-between group hover:shadow-md transition-shadow"
                             >
-                                Add +
-                            </motion.button>
-                        </motion.div>
-                    ))}
+                                <div className="flex-1 pr-4">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className={`w-3 h-3 border flex items-center justify-center p-[2px] ${item.isVeg ? 'border-green-600' : 'border-red-600'}`}>
+                                            <div className={`w-full h-full rounded-full ${item.isVeg ? 'bg-green-600' : 'bg-red-600'}`}></div>
+                                        </span>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.category}</span>
+                                    </div>
+                                    <h3 className="text-sm font-black text-slate-800 dark:text-white mb-1 group-hover:text-terracotta transition-colors">{item.name}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-black text-royal-blue dark:text-primary">₹{item.price}</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center">
+                                    {quantity === 0 ? (
+                                        <motion.button
+                                            whileTap={{ scale: 0.9 }}
+                                            onClick={() => addItem({
+                                                id: item.id,
+                                                name: item.name,
+                                                price: Number(item.price),
+                                                image: item.image || "https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?auto=format&fit=crop&q=80&w=200",
+                                                portion: "Standard"
+                                            })}
+                                            className="h-10 px-4 bg-primary/10 dark:bg-primary/5 text-royal-blue dark:text-primary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all border border-primary/20"
+                                        >
+                                            Add +
+                                        </motion.button>
+                                    ) : (
+                                        <div className="flex items-center bg-primary text-white rounded-2xl h-10 px-2 gap-3 shadow-md shadow-primary/20">
+                                            <motion.button
+                                                whileTap={{ scale: 0.8 }}
+                                                onClick={() => updateQuantity(item.id, -1)}
+                                                className="w-7 h-7 flex items-center justify-center bg-white/20 rounded-xl hover:bg-white/30 transition-colors"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">remove</span>
+                                            </motion.button>
+                                            <span className="text-xs font-black min-w-[12px] text-center">{quantity}</span>
+                                            <motion.button
+                                                whileTap={{ scale: 0.8 }}
+                                                onClick={() => updateQuantity(item.id, 1)}
+                                                className="w-7 h-7 flex items-center justify-center bg-white/20 rounded-xl hover:bg-white/30 transition-colors"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">add</span>
+                                            </motion.button>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        );
+                    })}
 
 
                     {filteredItems.length === 0 && (
