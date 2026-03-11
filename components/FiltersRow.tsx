@@ -13,7 +13,7 @@ export default function FiltersRow() {
     ];
 
     return (
-        <section className="px-5 pb-6 pt-0 overflow-hidden bg-white dark:bg-background-dark/50">
+        <section className="px-5 pb-6 pt-0 overflow-hidden bg-white dark:bg-slate-950">
             <div className="flex gap-2.5 overflow-x-auto scrollbar-hide py-2 snap-x">
                 {filters.map((filter, index) => (
                     <motion.button
@@ -23,9 +23,9 @@ export default function FiltersRow() {
                         transition={{ delay: index * 0.1, duration: 0.4 }}
                         whileHover={{ scale: 1.02, y: -0.5 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border shrink-0 snap-start transition-all text-[12px] font-extrabold ${filter.active
-                            ? "bg-[#0A2647] border-[#0A2647] text-white shadow-lg shadow-blue-900/10"
-                            : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 text-slate-800 dark:text-slate-200 shadow-sm"
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border shrink-0 snap-start transition-all text-[12px] font-black uppercase tracking-tighter ${filter.active
+                            ? "bg-[#0A2647] border-[#0A2647] text-white shadow-xl shadow-blue-950/20"
+                            : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:border-slate-800 dark:hover:border-slate-400 text-slate-900 dark:text-slate-100 shadow-sm"
                             }`}
                     >
                         {filter.icon && (

@@ -56,20 +56,20 @@ export default function CategoryStyle() {
     ];
 
     return (
-        <section className="pt-2 pb-6 overflow-hidden bg-white dark:bg-background-dark/50">
+        <section className="pt-2 pb-6 overflow-hidden bg-white dark:bg-slate-950">
             <div className="flex items-center gap-4 px-5 overflow-x-auto scrollbar-hide py-3 snap-x relative">
-                {/* Special Offer Tile */}
-                <Link href="/dish/all">
+                {/* Special Offer Tile - High Contrast */}
+                <Link href="/menu">
                     <motion.div
                         whileHover={{ y: -2 }}
                         className="flex flex-col items-center justify-center min-w-[88px] shrink-0 snap-start cursor-pointer group"
                     >
-                        <div className="w-full h-[72px] bg-gradient-to-br from-[#0A2647] to-[#144272] rounded-2xl flex flex-col items-center justify-center text-white shadow-md relative overflow-hidden group-hover:shadow-lg transition-shadow border border-white/10 mb-6">
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white/10 to-transparent" />
-                            <span className="text-[7px] font-bold uppercase tracking-widest mb-0.5 z-10 opacity-90">Meals Under</span>
-                            <span className="text-lg font-black z-10 drop-shadow-sm">₹250</span>
-                            <div className="text-[7px] bg-white text-[#0A2647] px-2 py-0.5 rounded-full mt-1 font-bold z-10 flex items-center shadow-sm">
-                                Explore <span className="material-symbols-outlined text-[8px] ml-0.5">chevron_right</span>
+                        <div className="w-full h-[72px] bg-[#0A2647] dark:bg-royal-blue rounded-2xl flex flex-col items-center justify-center text-white shadow-md relative overflow-hidden group-hover:shadow-lg transition-shadow border border-white/10 mb-6">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent" />
+                            <span className="text-[7px] font-black uppercase tracking-widest mb-0.5 z-10 text-white">Meals Under</span>
+                            <span className="text-xl font-black z-10 text-primary drop-shadow-md">₹250</span>
+                            <div className="text-[7px] bg-white text-[#0A2647] px-2 py-0.5 rounded-full mt-1 font-black z-10 flex items-center shadow-lg">
+                                EXPLORE <span className="material-symbols-outlined text-[8px] ml-0.5 font-black">chevron_right</span>
                             </div>
                         </div>
                     </motion.div>
@@ -86,10 +86,10 @@ export default function CategoryStyle() {
                         className="flex flex-col items-center justify-start min-w-[72px] shrink-0 snap-start cursor-pointer relative group"
                     >
                         <Link href={`/menu?category=${encodeURIComponent(category.id)}`} className="flex flex-col items-center w-full focus:outline-none">
-                            <div className={`w-[72px] h-[72px] rounded-full overflow-hidden shadow-md shadow-black/5 mb-2 border-2 ${category.active ? 'border-terracotta shadow-terracotta/20' : 'border-white dark:border-slate-800 group-hover:border-primary/30'} transition-all duration-300`}>
-                                <img src={category.image} alt={category.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                            <div className={`w-[72px] h-[72px] rounded-full overflow-hidden shadow-xl mb-2 border-2 ${category.active ? 'border-terracotta shadow-terracotta/30' : 'border-slate-100 dark:border-slate-800 group-hover:border-primary'} transition-all duration-300 bg-white`}>
+                                <img src={category.image} alt={category.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-90 group-hover:opacity-100" />
                             </div>
-                            <span className={`text-[11px] font-bold transition-colors ${category.active ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-white'}`}>
+                            <span className={`text-[11px] font-black uppercase tracking-tighter transition-colors ${category.active ? 'text-slate-900 dark:text-white' : 'text-slate-800 dark:text-slate-300 group-hover:text-black dark:group-hover:text-white'}`}>
                                 {category.name}
                             </span>
                             {category.active && (
