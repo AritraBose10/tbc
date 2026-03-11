@@ -2,31 +2,14 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { useState } from "react";
+import { useCartStore } from "@/store/useCartStore";
 
 export default function Cart() {
-    const [items, setItems] = useState<any[]>([]);
+    const { items, updateQuantity, removeItem, getSubtotal, getTax, getTotal } = useCartStore();
 
-    const updateQuantity = (id: string, delta: number) => {
-        setItems((prev) =>
-            prev.map((item) =>
-                item.id === id
-                    ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-                    : item
-            )
-        );
-    };
-
-    const removeItem = (id: string) => {
-        setItems((prev) => prev.filter((item) => item.id !== id));
-    };
-
-    const subtotal = items.reduce(
-        (acc, item) => acc + item.price * item.quantity,
-        0
-    );
-    const taxes = subtotal * 0.1;
-    const total = subtotal + taxes;
+    const subtotal = getSubtotal();
+    const taxes = getTax();
+    const total = getTotal();
 
     return (
         <main className="bg-background-light dark:bg-background-dark min-h-screen pb-56 mughal-pattern font-display">

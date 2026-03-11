@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { useCartStore } from "@/store/useCartStore";
 import menuData from "@/data/menu_clean.json";
 
 function MenuContent() {
@@ -13,6 +14,8 @@ function MenuContent() {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("All");
     const [isVegOnly, setIsVegOnly] = useState(false);
+
+    const addItem = useCartStore((state) => state.addItem);
 
     useEffect(() => {
         if (categoryParam) {
@@ -26,8 +29,10 @@ function MenuContent() {
     const menuItems = useMemo(() => {
         const items: any[] = [];
         Object.entries(menuData).forEach(([category, catItems]) => {
-            (catItems as any[]).forEach(item => {
-                items.push({ ...item, category });
+            (catItems as any[]).forEach((item, index) => {
+                // Generate a stable ID if none exists
+                const id = `${category.replace(/\s+/g, '-')}-${index}`;
+                items.push({ ...item, category, id });
             });
         });
         return items;
@@ -82,12 +87,11 @@ function MenuContent() {
 
                 {/* Menu Items Grid */}
                 <div className="grid grid-cols-1 gap-4">
-                    {filteredItems.map((item, idx) => (
+                    {filteredItems.map((item) => (
                         <motion.div
-                            key={`${item.name}-${idx}`}
+                            key={item.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.01 }}
                             className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-slate-50 dark:border-slate-700/50 flex items-center justify-between group hover:shadow-md transition-shadow"
                         >
                             <div className="flex-1 pr-4">
@@ -105,12 +109,20 @@ function MenuContent() {
 
                             <motion.button
                                 whileTap={{ scale: 0.9 }}
+                                onClick={() => addItem({
+                                    id: item.id,
+                                    name: item.name,
+                                    price: Number(item.price),
+                                    image: item.image || "https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?auto=format&fit=crop&q=80&w=200",
+                                    portion: "Standard"
+                                })}
                                 className="h-10 px-4 bg-primary/10 dark:bg-primary/5 text-royal-blue dark:text-primary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all border border-primary/20"
                             >
                                 Add +
                             </motion.button>
                         </motion.div>
                     ))}
+
 
                     {filteredItems.length === 0 && (
                         <div className="py-20 text-center">

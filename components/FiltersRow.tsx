@@ -25,7 +25,7 @@ export default function FiltersRow() {
                         whileTap={{ scale: 0.98 }}
                         className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border shrink-0 snap-start transition-all text-[12px] font-extrabold ${filter.active
                             ? "bg-[#0A2647] border-[#0A2647] text-white shadow-lg shadow-blue-900/10"
-                            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 shadow-sm"
+                            : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 text-slate-800 dark:text-slate-200 shadow-sm"
                             }`}
                     >
                         {filter.icon && (

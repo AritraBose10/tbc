@@ -89,7 +89,7 @@ export default function CategoryStyle() {
                             <div className={`w-[72px] h-[72px] rounded-full overflow-hidden shadow-md shadow-black/5 mb-2 border-2 ${category.active ? 'border-terracotta shadow-terracotta/20' : 'border-white dark:border-slate-800 group-hover:border-primary/30'} transition-all duration-300`}>
                                 <img src={category.image} alt={category.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                             </div>
-                            <span className={`text-[11px] font-bold transition-colors ${category.active ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'}`}>
+                            <span className={`text-[11px] font-bold transition-colors ${category.active ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300 group-hover:text-slate-800 dark:group-hover:text-white'}`}>
                                 {category.name}
                             </span>
                             {category.active && (

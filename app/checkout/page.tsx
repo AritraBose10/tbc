@@ -3,10 +3,18 @@
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCartStore } from "@/store/useCartStore";
 
 export default function Checkout() {
+    const router = useRouter();
+    const { items, getSubtotal, getTax, getTotal, clearCart } = useCartStore();
     const [paymentMethod, setPaymentMethod] = useState("upi");
     const [swiped, setSwiped] = useState(false);
+
+    const subtotal = getSubtotal();
+    const taxes = getTax();
+    const total = getTotal();
 
     const dragX = useMotionValue(0);
     const dragBg = useTransform(
@@ -21,6 +29,12 @@ export default function Checkout() {
         if (x > 200) {
             animate(dragX, 290, { type: "spring", stiffness: 300 });
             setSwiped(true);
+
+            // Simulate order processing and redirect
+            setTimeout(() => {
+                clearCart();
+                router.push("/tracking");
+            }, 1500);
         } else {
             animate(dragX, 0, { type: "spring", stiffness: 300 });
         }
@@ -91,34 +105,30 @@ export default function Checkout() {
                         Order Summary
                     </h2>
                     <div className="space-y-4">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                                    1x Nawabi Tarkari Biryani
-                                </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Portion: Large</p>
+                        {items.map((item) => (
+                            <div key={item.id} className="flex justify-between items-start">
+                                <div>
+                                    <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
+                                        {item.quantity}x {item.name}
+                                    </p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Portion: {item.portion || "Standard"}</p>
+                                </div>
+                                <p className="font-bold text-sm dark:text-slate-200">₹{(item.price * item.quantity).toFixed(2)}</p>
                             </div>
-                            <p className="font-bold text-sm dark:text-slate-200">₹19.99</p>
-                        </div>
-                        <div className="flex justify-between items-start">
-                            <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                                Extra Meat Portion
-                            </p>
-                            <p className="font-bold text-sm dark:text-slate-200">₹3.00</p>
-                        </div>
+                        ))}
                     </div>
                     <div className="h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent my-5" />
                     <div className="space-y-2.5 text-sm">
                         <div className="flex justify-between text-slate-500 dark:text-slate-400">
                             <span>Subtotal</span>
                             <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                ₹22.99
+                                ₹{subtotal.toFixed(2)}
                             </span>
                         </div>
                         <div className="flex justify-between text-slate-500 dark:text-slate-400">
                             <span>Taxes &amp; Fees</span>
                             <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                ₹2.50
+                                ₹{taxes.toFixed(2)}
                             </span>
                         </div>
                         <div className="flex justify-between text-slate-500 dark:text-slate-400">
@@ -215,7 +225,7 @@ export default function Checkout() {
                         Amount to Pay
                     </span>
                     <span className="text-2xl font-black text-royal-blue dark:text-white">
-                        ₹25.49
+                        ₹{total.toFixed(2)}
                     </span>
                 </div>
 
@@ -249,7 +259,7 @@ export default function Checkout() {
                             <span className="material-symbols-outlined text-white">
                                 check_circle
                             </span>
-                            <span className="text-white font-black uppercase tracking-widest text-sm">
+                            <span className="text-white font-black uppercase tracking-widest text-sm" >
                                 Order Placed!
                             </span>
                         </motion.div>
@@ -263,6 +273,7 @@ export default function Checkout() {
                     )}
                 </motion.div>
             </motion.div>
+
         </main>
     );
 }
