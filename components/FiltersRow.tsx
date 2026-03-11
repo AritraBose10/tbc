@@ -18,9 +18,6 @@ export default function FiltersRow() {
                 {filters.map((filter, index) => (
                     <motion.button
                         key={filter.id}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1, duration: 0.4 }}
                         whileHover={{ scale: 1.02, y: -0.5 }}
                         whileTap={{ scale: 0.98 }}
                         className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border shrink-0 snap-start transition-all text-[12px] font-black uppercase tracking-tighter ${filter.active

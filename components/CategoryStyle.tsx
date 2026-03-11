@@ -79,9 +79,6 @@ export default function CategoryStyle() {
                 {categories.map((category, index) => (
                     <motion.div
                         key={category.id}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1, duration: 0.4 }}
                         whileHover={{ y: -2 }}
                         className="flex flex-col items-center justify-start min-w-[72px] shrink-0 snap-start cursor-pointer relative group"
                     >

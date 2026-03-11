@@ -48,9 +48,6 @@ export default function Hero() {
     return (
         <motion.section
             ref={ref}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
             className="relative w-full h-[420px] overflow-hidden"
         >
             {/* Parallax Image Carousel */}
@@ -65,8 +62,6 @@ export default function Hero() {
                         style={{
                             backgroundImage: `url("${carouselItems[currentIndex].image}")`,
                         }}
-                        initial={{ opacity: 0, scale: 1.1 }}
-                        animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 1.2, ease: "easeInOut" }}
                     />
@@ -81,8 +76,6 @@ export default function Hero() {
                 <AnimatePresence mode="wait">
                     <div key={currentIndex}>
                         <motion.span
-                            initial={{ opacity: 0, x: -30, filter: "blur(4px)" }}
-                            animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
                             exit={{ opacity: 0, x: 30, filter: "blur(4px)" }}
                             transition={{ duration: 0.4 }}
                             className="inline-block bg-primary text-royal-blue text-[10px] font-black px-3 py-1.5 rounded-md mb-3 uppercase tracking-[0.2em] shadow-lg shadow-primary/30"
@@ -90,16 +83,12 @@ export default function Hero() {
                             {carouselItems[currentIndex].badge}
                         </motion.span>
                         <motion.h2
-                            initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
-                            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                             exit={{ opacity: 0, y: -30, filter: "blur(6px)" }}
                             transition={{ delay: 0.1, duration: 0.5 }}
                             className="text-white text-5xl font-extrabold leading-[1.05] mb-3 drop-shadow-2xl"
                             dangerouslySetInnerHTML={{ __html: carouselItems[currentIndex].title }}
                         />
                         <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
                             transition={{ delay: 0.2, duration: 0.4 }}
                             className="text-white/90 text-lg mb-6 font-medium drop-shadow-md"
@@ -111,9 +100,6 @@ export default function Hero() {
 
                 {/* Floating CTA */}
                 <motion.button
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                     className="mt-5 bg-white backdrop-blur text-royal-blue px-6 py-3 rounded-full font-bold text-sm uppercase tracking-wider shadow-xl shadow-black/20 flex items-center gap-2"

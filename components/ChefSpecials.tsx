@@ -81,8 +81,6 @@ export default function ChefSpecials() {
             </motion.div>
 
             <motion.div
-                drag="x"
-                dragConstraints={{ left: -600, right: 0 }}
                 className="flex gap-4 overflow-x-auto pb-4 snap-x scrollbar-hide cursor-grab active:cursor-grabbing"
             >
                 {specials.map((item, index) => (
