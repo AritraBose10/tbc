@@ -2,73 +2,67 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import menuData from "@/data/menu_clean.json";
 
 export default function ChefSpecials() {
+    // Extract specific real items for specials
     const specials = [
         {
-            id: "nawabi-tarkari",
-            title: "Nawabi Tarkari Biryani",
+            id: "chicken-biryani",
+            title: menuData["Biryani & Rice"].find(item => item.name === "CHICKEN BIRYANI")?.name || "Chicken Biryani",
             restaurant: "The Biryani Canteen",
-            description: "Garden fresh vegetables layered with long grain basmati.",
-            price: "₹299",
-            rating: "4.7",
-            eta: "35-40 mins",
-            image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuALHxVeoQp135l5733t5CcKGVriNpq8fo5pfnxtQfm4b4GpQ1VK3T6GrQUfCajgFCSwcf6YjzK-AceYZ4CL8l7oj-i-GuoGYm0H2tf9gIj31D5ZuxjZWA8efiohaZXP2hNgIJhirSIMvug9_ifNa1CQY_rO8LV3rz4wK9_r0bd6uldyM7gLBXgrzQKau2pmw_FWOyu7KWJ5L6jt_s40ARQ8DDRUi-UtVRvsA8hfz9BzmrnVVncgQihyr-1QX-aGOsIF0vao25sjeNq9",
-            badge: "MUST TRY",
-            discount: "Flat ₹75 OFF"
-        },
-        {
-            id: "mutton-raan",
-            title: "Slow Roasted Mutton",
-            restaurant: "TBC Premium",
-            description: "Whole leg of lamb, spiced for 24 hours and slow cooked.",
-            price: "₹550",
+            description: "Aromatic basmati rice layered with succulent chicken and spices.",
+            price: `₹${menuData["Biryani & Rice"].find(item => item.name === "CHICKEN BIRYANI")?.price || "130"}`,
             rating: "4.9",
-            eta: "45-50 mins",
-            image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuBTSTaAtWpvk57WUrC3rRzL1mZhiwmD8OVBx5PqaSI3nLdVfEiSjUHZ4GEx1-4hoxLKXiSf3aArh-zu1g7NYf8y5j2n7gD1T9MJD8BO6kNeOkCsHrdb4OTQYZH6cmMEBMfh2COZtxwsX9ry-NURYUhTDYy4HK79uhDfeOXrMH5qN_toN8HVf5Y4CZDPYiUuOWz9wqkmtz-S3Yy6iZ47FMhXBx_8GYK_JHbh9mcoh-XjNO0KpoOurWU39FMvLNLsF7l4Kuy5o0cv5vfn",
+            eta: "30-35 mins",
+            image: "https://images.unsplash.com/photo-1563379091339-03b11adca53b?q=80&w=800&auto=format&fit=crop",
             badge: "BESTSELLER",
-            proDiscount: "Pro extra 15% OFF"
+            discount: "Flat ₹20 OFF"
         },
         {
-            id: "keema-samosa",
-            title: "Royal Keema Samosa",
-            restaurant: "TBC Snacks",
-            description: "Crispy samosas stuffed with seasoned minced meat & spices.",
-            price: "₹120",
-            rating: "4.6",
-            eta: "15-20 mins",
-            image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuAG_OR5gLFM4KMrz2mdmBJ801T_5Bx6aefkPENWFvwga_p9jRV_Sy7Q_L2vIbAptJWTLOuyA64fQFSZpTtaZFJ99MuBTCh7JiWP7Xm6U1IqkyOAdyBBxnKOQf3it_0RQWK7JB7txvg37k8Vpny2II7V_frFx28WALtq7Cw7xtMWbye8x7WvorbF-iVseM2_pHfj-EHO4dLrSeSKij-ExtKAypG9-DnveV8ZYCF6VmeJOWAYu2yEfF3lcyckuXofOQthClb6TH1nqihV",
-            badge: "NEW",
-            discount: "25% OFF"
+            id: "chicken-chaap",
+            title: menuData["Main Course & Breads"].find(item => item.name === "CHICKEN CHAAP ( 1 PC)")?.name || "Chicken Chaap",
+            restaurant: "The Biryani Canteen",
+            description: "Slow-cooked chicken in a rich, poppy seed and cashew gravy.",
+            price: `₹${menuData["Main Course & Breads"].find(item => item.name === "CHICKEN CHAAP ( 1 PC)")?.price || "100"}`,
+            rating: "4.8",
+            eta: "25-30 mins",
+            image: "https://images.unsplash.com/photo-1603894584373-5ac82b0f5013?q=80&w=800&auto=format&fit=crop",
+            badge: "CHEF PICK",
+            proDiscount: "Pro extra 10% OFF"
+        },
+        {
+            id: "chicken-kasha",
+            title: menuData["Main Course & Breads"].find(item => item.name === "CHICKEN KASHA (2 PCS)")?.name || "Chicken Kasha (2 Pcs)",
+            restaurant: "The Biryani Canteen",
+            description: "Traditional Bengali style spicy chicken curry.",
+            price: `₹${menuData["Main Course & Breads"].find(item => item.name === "CHICKEN KASHA (2 PCS)")?.price || "80"}`,
+            rating: "4.7",
+            eta: "20-25 mins",
+            image: "https://images.unsplash.com/photo-1589187151003-8dc9c058778f?q=80&w=800&auto=format&fit=crop",
+            badge: "MUST TRY"
         },
         {
             id: "dal-makhani",
-            title: "Dal Makhani",
+            title: menuData["Main Course & Breads"].find(item => item.name === "DAL MAKHANI")?.name || "Dal Makhani",
             restaurant: "The Biryani Canteen",
-            description: "Black lentils simmered overnight in butter & cream.",
-            price: "₹199",
-            rating: "4.8",
-            eta: "25-30 mins",
-            image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuDoRRnuIzQvtkLQj4hdAUFSL3MIVVTFwXayko-DSkPKI3nyyUUsP5vl59ENHVuObx6H6_sbSHpTDJ5sALDLBnD1_KzV4zoZ7NItuJHyNlEE7hrUJXmqQVVHKdj99x-AGaOyxywv63G3DBU48GbkgBHVopU-yA4vg07fN9qVew0xspjnDgZVkpY6Qjzi24bVEF8Luu_SKOGmgtQAwVAAFDdlrnfSre2P0Fv0nFLo2Dkc-sZY-GNWEWsiGHhaG6agFwui9NACDmlEmAPA",
-            badge: "CHEF PICK",
-            discount: "Flat ₹40 OFF"
+            description: "Black lentils simmered overnight with butter and cream.",
+            price: `₹${menuData["Main Course & Breads"].find(item => item.name === "DAL MAKHANI")?.price || "80"}`,
+            rating: "4.6",
+            eta: "20-25 mins",
+            image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?q=80&w=800&auto=format&fit=crop",
+            badge: "POPULAR"
         },
         {
-            id: "tandoori-platter",
-            title: "Tandoori Platter",
-            restaurant: "TBC Premium",
-            description: "Assorted tandoori kebabs with mint chutney & onion rings.",
-            price: "₹450",
-            rating: "4.7",
-            eta: "30-35 mins",
-            image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuB714WIhZ9p_KwN73Gap25A4b-H8Dj1cDDhnZ1MtU9AMQn2dRzcGQQMKDowqYcAQzvDOCOAjifl1a-wflhtza8Y61E-SfjcgU9CpP2_A9THNimp54h-sHXnCKLfwu4A_IxyKolcCQeZqbILIOLFsg68xFYFowumyYAau-B4gZrG7-uTBsjtuqqkKiinIicE_c-ryLmdhE7Q6maxnvayYk_2CWpUQulIPB0pu-41so0M6_sWWfJ7zcBM0Cr3THbo6H2Nve4DafMWfVzA",
-            badge: "PREMIUM",
-            proDiscount: "Pro extra 20% OFF"
+            id: "butter-naan",
+            title: menuData["Main Course & Breads"].find(item => item.name === "BUTTER NAAN")?.name || "Butter Naan",
+            restaurant: "The Biryani Canteen",
+            description: "Soft tandoori bread glazed with fresh butter.",
+            price: `₹${menuData["Main Course & Breads"].find(item => item.name === "BUTTER NAAN")?.price || "50"}`,
+            rating: "4.5",
+            eta: "10-15 mins",
+            image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=800&auto=format&fit=crop",
+            badge: "FRESH"
         },
     ];
 
@@ -81,12 +75,12 @@ export default function ChefSpecials() {
                 className="flex items-center justify-between mb-5"
             >
                 <div>
-                    <h3 className="text-slate-900 dark:text-slate-100 text-lg font-black tracking-tight">
+                    <h3 className="text-royal-blue dark:text-white text-xl font-extrabold tracking-tight">
                         Chef&apos;s Specials
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Handcrafted masterpieces</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-0.5">Handcrafted masterpieces</p>
                 </div>
-                <Link href="/dish/all" className="text-xs font-bold text-red-600 dark:text-red-400">See all</Link>
+                <Link href="/dish/all" className="text-xs font-black text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-full shadow-sm">See all</Link>
             </motion.div>
 
             <motion.div

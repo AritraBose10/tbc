@@ -2,82 +2,84 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import menuData from "@/data/menu_clean.json";
 
 export default function RoyalPicks() {
-    const picks = [
+    interface MenuItem {
+        id: string;
+        title: string;
+        restaurant: string;
+        description: string;
+        price: string;
+        rating: string;
+        eta: string;
+        image: string;
+        discount?: string;
+        proDiscount?: string;
+    }
+
+    const picks: MenuItem[] = [
         {
-            id: "malai-paneer",
-            title: "Malai Paneer Tikka",
-            restaurant: "The Biryani Canteen HQ",
-            description: "Creamy cubes of cottage cheese grilled in tandoor.",
-            price: "₹280",
+            id: "chicken-burger",
+            title: menuData["Fast Food & Snacks"].find(item => item.name === "CHICKEN BURGER")?.name || "Chicken Burger",
+            restaurant: "The Biryani Canteen",
+            description: "Juicy chicken patty with fresh lettuce and secret sauce.",
+            price: `₹${menuData["Fast Food & Snacks"].find(item => item.name === "CHICKEN BURGER")?.price || "100"}`,
             rating: "4.8",
-            eta: "30-35 mins",
-            discount: "50% OFF up to ₹100",
-            proDiscount: "Pro extra 10% OFF",
-            image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuAG_OR5gLFM4KMrz2mdmBJ801T_5Bx6aefkPENWFvwga_p9jRV_Sy7Q_L2vIbAptJWTLOuyA64fQFSZpTtaZFJ99MuBTCh7JiWP7Xm6U1IqkyOAdyBBxnKOQf3it_0RQWK7JB7txvg37k8Vpny2II7V_frFx28WALtq7Cw7xtMWbye8x7WvorbF-iVseM2_pHfj-EHO4dLrSeSKij-ExtKAypG9-DnveV8ZYCF6VmeJOWAYu2yEfF3lcyckuXofOQthClb6TH1nqihV",
-        },
-        {
-            id: "mirchi-salan",
-            title: "Mirchi ka Salan",
-            restaurant: "TBC Express",
-            description: "Peanut based spicy green chili gravy - a classic side.",
-            price: "₹150",
-            rating: "4.5",
-            eta: "20-25 mins",
-            discount: "Flat ₹50 OFF",
-            image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuDoRRnuIzQvtkLQj4hdAUFSL3MIVVTFwXayko-DSkPKI3nyyUUsP5vl59ENHVuObx6H6_sbSHpTDJ5sALDLBnD1_KzV4zoZ7NItuJHyNlEE7hrUJXmqQVVHKdj99x-AGaOyxywv63G3DBU48GbkgBHVopU-yA4vg07fN9qVew0xspjnDgZVkpY6Qjzi24bVEF8Luu_SKOGmgtQAwVAAFDdlrnfSre2P0Fv0nFLo2Dkc-sZY-GNWEWsiGHhaG6agFwui9NACDmlEmAPA",
-        },
-        {
-            id: "butter-chicken",
-            title: "Butter Chicken",
-            restaurant: "TBC Premium Kitchen",
-            description: "Tender chicken in a rich, creamy tomato-butter gravy.",
-            price: "₹320",
-            rating: "4.9",
-            eta: "25-30 mins",
-            discount: "30% OFF up to ₹75",
-            proDiscount: "Pro extra 15% OFF",
-            image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuBTSTaAtWpvk57WUrC3rRzL1mZhiwmD8OVBx5PqaSI3nLdVfEiSjUHZ4GEx1-4hoxLKXiSf3aArh-zu1g7NYf8y5j2n7gD1T9MJD8BO6kNeOkCsHrdb4OTQYZH6cmMEBMfh2COZtxwsX9ry-NURYUhTDYy4HK79uhDfeOXrMH5qN_toN8HVf5Y4CZDPYiUuOWz9wqkmtz-S3Yy6iZ47FMhXBx_8GYK_JHbh9mcoh-XjNO0KpoOurWU39FMvLNLsF7l4Kuy5o0cv5vfn",
-        },
-        {
-            id: "hyderabadi-biryani",
-            title: "Hyderabadi Dum Biryani",
-            restaurant: "The Biryani Canteen HQ",
-            description: "Authentic slow-cooked basmati rice layered with aromatic spices.",
-            price: "₹350",
-            rating: "4.9",
-            eta: "35-40 mins",
-            discount: "Flat ₹80 OFF",
-            image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuALHxVeoQp135l5733t5CcKGVriNpq8fo5pfnxtQfm4b4GpQ1VK3T6GrQUfCajgFCSwcf6YjzK-AceYZ4CL8l7oj-i-GuoGYm0H2tf9gIj31D5ZuxjZWA8efiohaZXP2hNgIJhirSIMvug9_ifNa1CQY_rO8LV3rz4wK9_r0bd6uldyM7gLBXgrzQKau2pmw_FWOyu7KWJ5L6jt_s40ARQ8DDRUi-UtVRvsA8hfz9BzmrnVVncgQihyr-1QX-aGOsIF0vao25sjeNq9",
-        },
-        {
-            id: "chicken-65",
-            title: "Chicken 65",
-            restaurant: "TBC Express",
-            description: "Spicy, deep-fried chicken bites with curry leaves.",
-            price: "₹220",
-            rating: "4.6",
             eta: "15-20 mins",
-            discount: "20% OFF",
-            image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuB714WIhZ9p_KwN73Gap25A4b-H8Dj1cDDhnZ1MtU9AMQn2dRzcGQQMKDowqYcAQzvDOCOAjifl1a-wflhtza8Y61E-SfjcgU9CpP2_A9THNimp54h-sHXnCKLfwu4A_IxyKolcCQeZqbILIOLFsg68xFYFowumyYAau-B4gZrG7-uTBsjtuqqkKiinIicE_c-ryLmdhE7Q6maxnvayYk_2CWpUQulIPB0pu-41so0M6_sWWfJ7zcBM0Cr3THbo6H2Nve4DafMWfVzA",
+            discount: "BOGO Offer",
+            image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=800&auto=format&fit=crop",
         },
         {
-            id: "veg-pulao",
-            title: "Vegetable Pulao",
-            restaurant: "TBC Lite",
-            description: "Fragrant basmati rice cooked with garden-fresh vegetables.",
-            price: "₹180",
-            rating: "4.4",
-            eta: "20-25 mins",
+            id: "chicken-pizza",
+            title: menuData["Fast Food & Snacks"].find(item => item.name === "CHICKEN PIZZA")?.name || "Chicken Pizza",
+            restaurant: "The Biryani Canteen",
+            description: "Thin crust pizza topped with spicy chicken and cheese.",
+            price: `₹${menuData["Fast Food & Snacks"].find(item => item.name === "CHICKEN PIZZA")?.price || "100"}`,
+            rating: "4.7",
+            eta: "25-30 mins",
             discount: "Flat ₹30 OFF",
-            image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuD2ETTHmFR_jr2Mr2sLruO_ND11eXdd70gUptq1Hb5YjUrgenGQERJxOnj4arOl2DonpEIKZgkyJ1v_nQc6mq-vczCP2OHOZ_uFSVxBTinJ4JAmhVkpQN5WdOJynXv0dXRCXw06dIKJKpZbIcLnY39M9lyXb7wKZDpJ2NDFghnD6aM0dWqdVAWau_5Bq6ocvM6jrCJ1cfOeN9cTLtg4aKxgbS4ubOa5Q-ULL-EcOAGk3NxsteD8MjIjoqjzu2o4eStlYQZnRWh8pVO4",
+            image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=800&auto=format&fit=crop",
+        },
+        {
+            id: "chicken-pasta",
+            title: menuData["Chinese & Pasta"].find(item => item.name === "CHICKEN PASTA")?.name || "Chicken Pasta",
+            restaurant: "The Biryani Canteen",
+            description: "Creamy white sauce pasta with tender chicken bits.",
+            price: `₹${menuData["Chinese & Pasta"].find(item => item.name === "CHICKEN PASTA")?.price || "80"}`,
+            rating: "4.6",
+            eta: "20-25 mins",
+            image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?q=80&w=800&auto=format&fit=crop",
+        },
+        {
+            id: "egg-chicken-roll",
+            title: menuData["Rolls & Wraps"].find(item => item.name === "EGG CHICKEN ROLL")?.name || "Egg Chicken Roll",
+            restaurant: "The Biryani Canteen",
+            description: "Classic street-style paratha roll with egg and chicken.",
+            price: `₹${menuData["Rolls & Wraps"].find(item => item.name === "EGG CHICKEN ROLL")?.price || "90"}`,
+            rating: "4.9",
+            eta: "10-15 mins",
+            image: "https://images.unsplash.com/photo-1626777553754-5a7e6b015183?q=80&w=800&auto=format&fit=crop",
+        },
+        {
+            id: "chicken-popcorn",
+            title: menuData["Fast Food & Snacks"].find(item => item.name === "CHICKEN POPCORN (8 PCS)")?.name || "Chicken Popcorn (8 Pcs)",
+            restaurant: "The Biryani Canteen",
+            description: "Bite-sized crispy chicken munchies.",
+            price: `₹${menuData["Fast Food & Snacks"].find(item => item.name === "CHICKEN POPCORN (8 PCS)")?.price || "100"}`,
+            rating: "4.8",
+            eta: "10-15 mins",
+            image: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop",
+        },
+        {
+            id: "oreo-shake",
+            title: menuData["Drinks & Beverages"].find(item => item.name === "OREO SHAKE")?.name || "Oreo Shake",
+            restaurant: "The Biryani Canteen",
+            description: "Thick chocolate shake blended with Oreo cookies.",
+            price: `₹${menuData["Drinks & Beverages"].find(item => item.name === "OREO SHAKE")?.price || "100"}`,
+            rating: "4.9",
+            eta: "10-15 mins",
+            image: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?q=80&w=800&auto=format&fit=crop",
         },
     ];
 

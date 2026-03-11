@@ -1,0 +1,532 @@
+{
+  "Biryani & Rice": [
+    {
+      "name": "CHICKEN BIRYANI",
+      "price": "130",
+      "isVeg": false
+    },
+    {
+      "name": "VEG BIRYANI",
+      "price": "90",
+      "isVeg": true
+    },
+    {
+      "name": "ALOO BIRYANI",
+      "price": "80",
+      "isVeg": true
+    },
+    {
+      "name": "MINI BIRYANI ( 1 SMALL PC CH. &  1 PC ALOO)",
+      "price": "80",
+      "isVeg": true
+    },
+    {
+      "name": "STEAM RICE",
+      "price": "40",
+      "isVeg": true
+    },
+    {
+      "name": "PEAS PULAO",
+      "price": "60",
+      "isVeg": true
+    }
+  ],
+  "Kebabs & Tandoor": [
+    {
+      "name": "CHICKEN TAWA KEBAB ( 4 PCS)",
+      "price": "120",
+      "isVeg": false
+    },
+    {
+      "name": "CHICKEN TANGRI KEBAB (2 PCS)",
+      "price": "150",
+      "isVeg": false
+    },
+    {
+      "name": "CHICKEN TIKKA KEBEB ( 6 PCS ) ( PRE -ORDER)",
+      "price": "275",
+      "isVeg": false
+    },
+    {
+      "name": "CHICKEN PAKODA(5 PCS)",
+      "price": "100",
+      "isVeg": false
+    }
+  ],
+  "Rolls & Wraps": [
+    {
+      "name": "EGG ROLL",
+      "price": "50",
+      "isVeg": false
+    },
+    {
+      "name": "PANEER ROLL",
+      "price": "60",
+      "isVeg": true
+    },
+    {
+      "name": "CHICKEN ROLL",
+      "price": "65",
+      "isVeg": false
+    },
+    {
+      "name": "EGG CHICKEN ROLL",
+      "price": "90",
+      "isVeg": false
+    },
+    {
+      "name": "RUMALI ROLL",
+      "price": "100",
+      "isVeg": true
+    },
+    {
+      "name": "CHICKEN WRAP",
+      "price": "100",
+      "isVeg": false
+    },
+    {
+      "name": "VEG WRAP",
+      "price": "100",
+      "isVeg": true
+    }
+  ],
+  "Fast Food & Snacks": [
+    {
+      "name": "CHICKEN SANDWICH",
+      "price": "50",
+      "isVeg": false
+    },
+    {
+      "name": "PANEER SANDWICH",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "CHICKEN BURGER",
+      "price": "100",
+      "isVeg": false
+    },
+    {
+      "name": "VEG BURGER",
+      "price": "100",
+      "isVeg": true
+    },
+    {
+      "name": "CHICKEN PIZZA",
+      "price": "100",
+      "isVeg": false
+    },
+    {
+      "name": "VEG PIZZA",
+      "price": "100",
+      "isVeg": true
+    },
+    {
+      "name": "VEG CUTLET",
+      "price": "20",
+      "isVeg": true
+    },
+    {
+      "name": "FRENCH FRY",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "POTATO WEDGES",
+      "price": "60",
+      "isVeg": true
+    },
+    {
+      "name": "PAV BHAJI",
+      "price": "60",
+      "isVeg": true
+    },
+    {
+      "name": "PANEER FINGER ( 5 PCS)",
+      "price": "100",
+      "isVeg": true
+    },
+    {
+      "name": "FISH CHOP",
+      "price": "40",
+      "isVeg": false
+    },
+    {
+      "name": "EGG CHICKEN CHOP",
+      "price": "40",
+      "isVeg": false
+    },
+    {
+      "name": "CHICKEN POPCORN (8 PCS)",
+      "price": "100",
+      "isVeg": false
+    },
+    {
+      "name": "CHEESE CHICKEN FINGER ( 2 PCS)",
+      "price": "150",
+      "isVeg": false
+    },
+    {
+      "name": "CHICKEN WINGS ( 4 PCS)",
+      "price": "150",
+      "isVeg": false
+    },
+    {
+      "name": "FISH FRY ( BHETKI) ( 1 PC)",
+      "price": "150",
+      "isVeg": false
+    },
+    {
+      "name": "FISH FINGER (4 PCS)",
+      "price": "150",
+      "isVeg": false
+    },
+    {
+      "name": "CORN CHAAT",
+      "price": "40",
+      "isVeg": true
+    }
+  ],
+  "Chinese & Pasta": [
+    {
+      "name": "VEG MOMO (6 PCS)",
+      "price": "60",
+      "isVeg": true
+    },
+    {
+      "name": "CHICKEN MOMO (6 PCS)",
+      "price": "70",
+      "isVeg": false
+    },
+    {
+      "name": "VEG NOODLES",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "EGG NOODLES",
+      "price": "65",
+      "isVeg": false
+    },
+    {
+      "name": "CHICKEN NOODLES",
+      "price": "80",
+      "isVeg": false
+    },
+    {
+      "name": "EGG CHICKEN NOODLES",
+      "price": "90",
+      "isVeg": false
+    },
+    {
+      "name": "VEG PASTA",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "CHICKEN PASTA",
+      "price": "80",
+      "isVeg": false
+    },
+    {
+      "name": "CHICKEN CHEESE PASTA",
+      "price": "90",
+      "isVeg": false
+    },
+    {
+      "name": "PENNE PASTA IN WHITE / MIXED SAUCE( VEG/NONVEG)",
+      "price": "120/150",
+      "isVeg": true
+    },
+    {
+      "name": "BAKED PASTA ( VEG / NONVEG)",
+      "price": "130/160",
+      "isVeg": true
+    },
+    {
+      "name": "CHILLI CHICKEN DRY ( 6 PCS)",
+      "price": "200",
+      "isVeg": false
+    }
+  ],
+  "Maggi Special": [
+    {
+      "name": "PLAIN MAGGI",
+      "price": "40",
+      "isVeg": true
+    },
+    {
+      "name": "EGG MAGGI",
+      "price": "50",
+      "isVeg": false
+    },
+    {
+      "name": "EGG CHICKEN MAGGI",
+      "price": "70",
+      "isVeg": false
+    },
+    {
+      "name": "CHEESE MAGGI WITH CHICKEN",
+      "price": "80",
+      "isVeg": false
+    }
+  ],
+  "Main Course & Breads": [
+    {
+      "name": "TAWA ROTI",
+      "price": "5",
+      "isVeg": true
+    },
+    {
+      "name": "TANDOORI ROTI",
+      "price": "25",
+      "isVeg": true
+    },
+    {
+      "name": "LACHCHA PARATHA",
+      "price": "30",
+      "isVeg": true
+    },
+    {
+      "name": "BUTTER NAAN",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "YELLOW DAL FRY",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "DAL TADKA ( PLAIN )",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "DAL MAKHANI",
+      "price": "80",
+      "isVeg": true
+    },
+    {
+      "name": "CHICKEN BHARTA",
+      "price": "80",
+      "isVeg": false
+    },
+    {
+      "name": "CHICKEN KASHA (2 PCS)",
+      "price": "80",
+      "isVeg": false
+    },
+    {
+      "name": "CHICKEN CHAAP ( 1 PC)",
+      "price": "100",
+      "isVeg": false
+    }
+  ],
+  "Thalis & Combos": [
+    {
+      "name": "VEG THALI - STEAM RICE, DAL,ALOO BHAJA",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "VEG THALI - STEAM RICE, DAL,ALOO BHAJA, SABJI",
+      "price": "60",
+      "isVeg": true
+    },
+    {
+      "name": "EGG THALI - STEAM RICE, DAL, ALOO BHAJA, OMLETTE",
+      "price": "70",
+      "isVeg": false
+    },
+    {
+      "name": "EGG THALI - STEAM RICE, DAL, ALOO BHAJA, EGG CURRY",
+      "price": "80",
+      "isVeg": false
+    },
+    {
+      "name": "CHICKEN THALI - STEAM RICE, DAL, ALOO BHAJA, CHICKEN CURRY",
+      "price": "100",
+      "isVeg": false
+    },
+    {
+      "name": "TAWA ROTI (2 PCS)& SOFT ALOO BHAJA",
+      "price": "30",
+      "isVeg": true
+    },
+    {
+      "name": "LUCHI(4 PCS) & ALOO BHAJA/DUM ALOO/GHUGNI",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "BREAD WITH OMLETTE",
+      "price": "50",
+      "isVeg": false
+    },
+    {
+      "name": "FRIED RICE/NOODLES & CHILLI CHICKEN /PANEER",
+      "price": "100",
+      "isVeg": false
+    },
+    {
+      "name": "PEAS PULAO & CHICKEN KASHA/PANEER",
+      "price": "100",
+      "isVeg": false
+    },
+    {
+      "name": "LACHCHA PARATHA (2 PCS) & CHICKEN KASHA /PANEER MASALA",
+      "price": "120",
+      "isVeg": false
+    }
+  ],
+  "Drinks & Beverages": [
+    {
+      "name": "TEA",
+      "price": "10",
+      "isVeg": true
+    },
+    {
+      "name": "COFFEE",
+      "price": "15",
+      "isVeg": true
+    },
+    {
+      "name": "LASSI",
+      "price": "30",
+      "isVeg": true
+    },
+    {
+      "name": "CHAAS",
+      "price": "30",
+      "isVeg": true
+    },
+    {
+      "name": "PULSE CANDY",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "BLUE HEAVEN",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "CRANBERRY MOJITO",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "ORANGE MOJITO",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "KALA KHATTA MOJITO",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "WATERMELON MOJITO",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "ORANGE SUNRISE",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "STRAWBERRY SWEETHEART",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "ORANGE PIROSKA",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "DEEP BLUE SEA (SPICY)",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "FRUIT PUNCH",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "LEMON ICE TEA",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "PEACH ICE TEA",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "BLACK CURRENT SLASH",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "CRANBERRY LITCHI TWIST",
+      "price": "50",
+      "isVeg": true
+    },
+    {
+      "name": "VANILLA SHAKE",
+      "price": "80",
+      "isVeg": true
+    },
+    {
+      "name": "CHOCOLATE SHAKE",
+      "price": "90",
+      "isVeg": true
+    },
+    {
+      "name": "COLD COFFEE",
+      "price": "100",
+      "isVeg": true
+    },
+    {
+      "name": "OREO SHAKE",
+      "price": "100",
+      "isVeg": true
+    },
+    {
+      "name": "KITKAT SHAKE",
+      "price": "100",
+      "isVeg": true
+    },
+    {
+      "name": "COLD COFFEE SHAKE",
+      "price": "100",
+      "isVeg": true
+    }
+  ],
+  "Sides & Extras": [
+    {
+      "name": "EGG",
+      "price": "15",
+      "isVeg": false
+    },
+    {
+      "name": "CHEESE",
+      "price": "20",
+      "isVeg": true
+    },
+    {
+      "name": "CHICKEN",
+      "price": "50",
+      "isVeg": false
+    },
+    {
+      "name": "PARCEL CHARGE",
+      "price": "10",
+      "isVeg": true
+    }
+  ]
+}

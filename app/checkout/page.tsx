@@ -32,7 +32,7 @@ export default function Checkout() {
             <motion.div
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="sticky top-0 z-50 flex items-center justify-between p-4 glass dark:glass-dark"
+                className="sticky top-0 z-50 flex items-center justify-between p-4 bg-white dark:bg-background-dark border-b border-slate-100 dark:border-slate-800"
             >
                 <Link href="/cart">
                     <motion.div
@@ -208,7 +208,7 @@ export default function Checkout() {
                 initial={{ y: 100 }}
                 animate={{ y: 0 }}
                 transition={{ type: "spring", stiffness: 100, delay: 0.4 }}
-                className="fixed bottom-0 left-0 right-0 p-5 glass dark:glass-dark z-50 rounded-t-3xl"
+                className="fixed bottom-0 left-0 right-0 p-5 bg-white dark:bg-background-dark z-50 rounded-t-3xl border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]"
             >
                 <div className="flex justify-between items-center mb-5 px-1">
                     <span className="text-slate-500 dark:text-slate-400 font-medium text-sm">

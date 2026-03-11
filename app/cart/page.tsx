@@ -5,26 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 export default function Cart() {
-    const [items, setItems] = useState([
-        {
-            id: "nawabi",
-            name: "Nawabi Tarkari Biryani",
-            portion: "Large",
-            price: 19.99,
-            quantity: 1,
-            image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuALHxVeoQp135l5733t5CcKGVriNpq8fo5pfnxtQfm4b4GpQ1VK3T6GrQUfCajgFCSwcf6YjzK-AceYZ4CL8l7oj-i-GuoGYm0H2tf9gIj31D5ZuxjZWA8efiohaZXP2hNgIJhirSIMvug9_ifNa1CQY_rO8LV3rz4wK9_r0bd6uldyM7gLBXgrzQKau2pmw_FWOyu7KWJ5L6jt_s40ARQ8DDRUi-UtVRvsA8hfz9BzmrnVVncgQihyr-1QX-aGOsIF0vao25sjeNq9",
-        },
-        {
-            id: "mirchi",
-            name: "Mirchi ka Salan",
-            portion: "Regular",
-            price: 5.5,
-            quantity: 2,
-            image:
-                "https://lh3.googleusercontent.com/aida-public/AB6AXuDoRRnuIzQvtkLQj4hdAUFSL3MIVVTFwXayko-DSkPKI3nyyUUsP5vl59ENHVuObx6H6_sbSHpTDJ5sALDLBnD1_KzV4zoZ7NItuJHyNlEE7hrUJXmqQVVHKdj99x-AGaOyxywv63G3DBU48GbkgBHVopU-yA4vg07fN9qVew0xspjnDgZVkpY6Qjzi24bVEF8Luu_SKOGmgtQAwVAAFDdlrnfSre2P0Fv0nFLo2Dkc-sZY-GNWEWsiGHhaG6agFwui9NACDmlEmAPA",
-        },
-    ]);
+    const [items, setItems] = useState<any[]>([]);
 
     const updateQuantity = (id: string, delta: number) => {
         setItems((prev) =>
@@ -53,7 +34,7 @@ export default function Cart() {
             <motion.div
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="sticky top-0 z-50 flex items-center justify-between p-4 glass dark:glass-dark"
+                className="sticky top-0 z-50 flex items-center justify-between p-4 bg-white dark:bg-background-dark border-b border-slate-100 dark:border-slate-800"
             >
                 <Link href="/">
                     <motion.div
@@ -241,7 +222,7 @@ export default function Cart() {
                     initial={{ y: 100 }}
                     animate={{ y: 0 }}
                     transition={{ type: "spring", stiffness: 100, delay: 0.5 }}
-                    className="fixed bottom-0 left-0 right-0 p-5 glass dark:glass-dark z-50 rounded-t-3xl"
+                    className="fixed bottom-0 left-0 right-0 p-5 bg-white dark:bg-background-dark z-50 rounded-t-3xl border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]"
                 >
                     <div className="flex gap-4">
                         <div className="flex-1">
