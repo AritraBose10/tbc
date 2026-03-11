@@ -69,9 +69,6 @@ export default function ChefSpecials() {
     return (
         <section className="py-6 px-5 overflow-hidden">
             <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
                 className="flex items-center justify-between mb-5"
             >
                 <div>
@@ -91,10 +88,6 @@ export default function ChefSpecials() {
                 {specials.map((item, index) => (
                     <motion.div
                         key={item.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: index * 0.1, duration: 0.4 }}
                         whileHover={{ y: -4, transition: { duration: 0.25 } }}
                         className="min-w-[260px] snap-center bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800"
                     >

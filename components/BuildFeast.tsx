@@ -6,10 +6,6 @@ export default function BuildFeast() {
     return (
         <section className="p-5 py-10">
             <motion.div
-                initial={{ opacity: 0, scale: 0.92, y: 30 }}
-                whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
                 className="relative bg-white dark:bg-background-dark border border-slate-200 dark:border-slate-800 rounded-3xl p-8 flex flex-col items-center text-center overflow-hidden premium-shadow"
             >
                 {/* Background decorations */}

@@ -1,0 +1,121 @@
+﻿node.exe : Vercel CLI 50.6.1
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (Vercel   
+  CLI 50.6.1:String) [], R   
+ emoteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+Retrieving projectΓÇª
+Deploying aritrabose10s-proje
+cts/tbc-app
+Uploading 
+[--------------------] 
+(0.0B/890B)
+Uploading 
+[====================] 
+(890.0B/890B)
+Inspect: https://vercel.com/a
+ritrabose10s-projects/tbc-app
+/FZrbSaNm7o6GPWiaufa1W7RRnCzm
+ [2s]
+Production: https://tbc-5vwb8
+0g5p-aritrabose10s-projects.v
+ercel.app [2s]
+Building...
+Building...
+Building: Running build in 
+Portland, USA (West) ΓÇô pdx1
+Building: Build machine 
+configuration: 2 cores, 8 GB
+Building: Retrieving list of 
+deployment files...
+Building: Downloading 33 
+deployment files...
+Building: Restored build 
+cache from previous 
+deployment (2dw8r5v9sLqgnNUkx
+gr5SVEcG1wt)
+Building: Running "vercel 
+build"
+Building: Vercel CLI 50.28.0
+Building: Installing 
+dependencies...
+Building: up to date in 851ms
+Building: 147 packages are 
+looking for funding
+Building: run `npm fund` for 
+details
+Building: Detected Next.js 
+version: 16.1.6
+Building: Running "npm run 
+build"
+Building: > tbc-app@0.1.0 
+build
+Building: > next build
+Building: Γû▓ Next.js 16.1.6 
+(Turbopack)
+Building: Creating an 
+optimized production build 
+...
+Building: Γ£ô Compiled 
+successfully in 7.4s
+Building: Running TypeScript 
+...
+Building: Collecting page 
+data using 1 worker ...
+Building: Generating static 
+pages using 1 worker (0/6) 
+...
+Building: Generating static 
+pages using 1 worker (1/6)
+Building: Generating static 
+pages using 1 worker (2/6)
+Building: Generating static 
+pages using 1 worker (4/6)
+Building: Γ£ô Generating 
+static pages using 1 worker 
+(6/6) in 176.8ms
+Building: Finalizing page 
+optimization ...
+Building: Route (app)
+Building: Γöî Γùï /
+Building: Γö£ Γùï /_not-found
+Building: Γö£ Γùï /cart
+Building: Γö£ Γùï /checkout
+Building: Γö£ ╞Æ /dish/[id]
+Building: Γöö ╞Æ 
+/track/[orderId]
+Building: Γùï  (Static)   
+prerendered as static content
+Building: ╞Æ  (Dynamic)  
+server-rendered on demand
+Building: Traced Next.js 
+server files in: 34.069ms
+Building: Created all 
+serverless functions in: 
+201.998ms
+Building: Collected static 
+files (public/, static/, 
+.next/static): 6.8ms
+Building: Build Completed in 
+/vercel/output [15s]
+Building: Deploying 
+outputs...
+[2K[1A[2K[GProduction: ht
+tps://tbc-5vwb80g5p-aritrabos
+e10s-projects.vercel.app 
+[30s]
+Completing...
+Aliased: https://tbc-app-ten.
+vercel.app [30s]
+https://tbc-5vwb80g5p-aritrabose10s-projects.vercel.app
+

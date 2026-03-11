@@ -86,9 +86,6 @@ export default function RoyalPicks() {
     return (
         <section className="px-5 pb-6 overflow-hidden">
             <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
                 className="flex items-center justify-between mb-5"
             >
                 <div>
@@ -106,10 +103,6 @@ export default function RoyalPicks() {
                 {picks.map((item, index) => (
                     <motion.div
                         key={item.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-20px" }}
-                        transition={{ delay: index * 0.08, duration: 0.4 }}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                     >
