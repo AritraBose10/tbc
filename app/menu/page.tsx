@@ -3,11 +3,11 @@
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import menuData from "@/data/menu_clean.json";
 
-export default function MenuPage() {
+function MenuContent() {
     const searchParams = useSearchParams();
     const categoryParam = searchParams.get("category");
     const [searchQuery, setSearchQuery] = useState("");
@@ -44,7 +44,6 @@ export default function MenuPage() {
         });
         return filtered;
     }, [searchQuery, activeCategory, isVegOnly, menuItems]);
-
 
     return (
         <main className="min-h-screen bg-[#FFFDF0] dark:bg-background-dark pb-24">
@@ -126,3 +125,16 @@ export default function MenuPage() {
         </main>
     );
 }
+
+export default function MenuPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#FFFDF0] flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        }>
+            <MenuContent />
+        </Suspense>
+    );
+}
+
