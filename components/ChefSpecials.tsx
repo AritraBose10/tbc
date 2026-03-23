@@ -50,7 +50,7 @@ export default function ChefSpecials() {
                     </h3>
                     <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-0.5">Handcrafted masterpieces</p>
                 </div>
-                <Link href="/dish/all" className="text-xs font-black text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-full shadow-sm">See all</Link>
+                <button onClick={() => alert("All dishes page coming soon!")} className="text-xs font-black text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-full shadow-sm hover:bg-red-100 transition-colors">See all</button>
             </motion.div>
 
             <motion.div

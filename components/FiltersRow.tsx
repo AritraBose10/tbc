@@ -14,7 +14,10 @@ export default function FiltersRow() {
     ]);
 
     const toggleFilter = (id: string) => {
-        if (id === "sort") return; // Keep "sort" inactive for now
+        if (id === "sort") {
+            alert("Sort options coming soon!");
+            return;
+        }
         setFilters(filters.map((f: any) => f.id === id ? { ...f, active: !f.active } : f));
     };
 

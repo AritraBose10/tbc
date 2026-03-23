@@ -39,6 +39,7 @@ export default function Header({
         >
             <div className="flex items-center justify-between w-full">
                 <motion.div
+                    onClick={() => alert("Menu coming soon!")}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.92 }}
                     className="text-royal-blue dark:text-primary flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 cursor-pointer shadow-sm"

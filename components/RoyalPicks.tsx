@@ -94,7 +94,7 @@ export default function RoyalPicks() {
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Curated selections based on your taste</p>
                 </div>
-                <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-full">
+                <div onClick={() => alert("Filters coming soon!")} className="cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors bg-slate-100 dark:bg-slate-800 p-1.5 rounded-full">
                     <span className="material-symbols-outlined text-slate-600 dark:text-slate-300 text-sm block">filter_list</span>
                 </div>
             </motion.div>
