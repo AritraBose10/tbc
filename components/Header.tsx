@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/store/useCartStore";
+import Sidebar from "./Sidebar";
 
 export default function Header({
     onSearch,
@@ -16,6 +17,7 @@ export default function Header({
 }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [hydrated, setHydrated] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const getTotalItems = useCartStore((state) => state.getTotalItems);
 
     useEffect(() => {
@@ -31,15 +33,17 @@ export default function Header({
     const cartCount = hydrated ? getTotalItems() : 0;
 
     return (
-        <motion.header
-            initial={{ y: -30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="flex flex-col bg-[#FFFDF0] dark:bg-background-dark p-4 px-5 sticky top-0 z-50 gap-4 border-b border-slate-100 dark:border-slate-800 shadow-sm"
-        >
+        <>
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+            <motion.header
+                initial={{ y: -30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="flex flex-col bg-[#FFFDF0] dark:bg-background-dark p-4 px-5 sticky top-0 z-40 gap-4 border-b border-slate-100 dark:border-slate-800 shadow-sm"
+            >
             <div className="flex items-center justify-between w-full">
                 <motion.div
-                    onClick={() => alert("Menu coming soon!")}
+                    onClick={() => setIsSidebarOpen(true)}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.92 }}
                     className="text-royal-blue dark:text-primary flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 cursor-pointer shadow-sm"
@@ -124,5 +128,6 @@ export default function Header({
                 </motion.div>
             </div>
         </motion.header>
+        </>
     );
 }

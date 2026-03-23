@@ -1,12 +1,12 @@
 import Link from 'next/link';
 
-export default function MenuPage() {
+export default function SupportPage() {
     return (
         <main className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
-            <span className="material-symbols-outlined text-6xl text-royal-blue dark:text-blue-400 mb-4">restaurant_menu</span>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-2">Our Menu</h1>
+            <span className="material-symbols-outlined text-6xl text-royal-blue dark:text-blue-400 mb-4">help</span>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-2">Help & Support</h1>
             <p className="text-slate-600 dark:text-slate-400 max-w-md mx-auto mb-8">
-                Detailed menu listings are coming soon. Stay tuned to explore all of our delicious meals!
+                Need help? Our support portal and FAQs are currently under construction.
             </p>
             <Link href="/" className="bg-royal-blue hover:bg-blue-800 text-white px-6 py-3 rounded-2xl font-bold transition-all">
                 Go back Home
