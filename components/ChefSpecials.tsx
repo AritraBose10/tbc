@@ -3,68 +3,41 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import menuData from "@/data/menu_clean.json";
+import { useCartStore } from "@/store/useCartStore";
 
 export default function ChefSpecials() {
-    // Extract specific real items for specials
-    const specials = [
-        {
-            id: "chicken-biryani",
-            title: menuData["Biryani & Rice"].find(item => item.name === "CHICKEN BIRYANI")?.name || "Chicken Biryani",
+    const { addItem } = useCartStore();
+    // Dynamically generate specials from the first few categories in the menu
+    const categories = Object.keys(menuData) as (keyof typeof menuData)[];
+    const specials = categories.slice(0, 6).map((category, index) => {
+        const item = menuData[category][0]; // Pick the first item of each category
+        
+        // Fallback images to keep the UI looking premium
+        const images = [
+            "https://images.unsplash.com/photo-1563379091339-03b11adca53b?q=80&w=800&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1603894584373-5ac82b0f5013?q=80&w=800&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1589187151003-8dc9c058778f?q=80&w=800&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1546833999-b9f581a1996d?q=80&w=800&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=800&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1565557623262-b51c2513a641?q=80&w=800&auto=format&fit=crop"
+        ];
+        
+        const badges = ["BESTSELLER", "CHEF PICK", "MUST TRY", "POPULAR", "FRESH", "HOT"];
+        
+        return {
+            id: item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
+            title: item.name,
             restaurant: "The Biryani Canteen",
-            description: "Aromatic basmati rice layered with succulent chicken and spices.",
-            price: `₹${menuData["Biryani & Rice"].find(item => item.name === "CHICKEN BIRYANI")?.price || "130"}`,
-            rating: "4.9",
-            eta: "30-35 mins",
-            image: "https://images.unsplash.com/photo-1563379091339-03b11adca53b?q=80&w=800&auto=format&fit=crop",
-            badge: "BESTSELLER",
-            discount: "Flat ₹20 OFF"
-        },
-        {
-            id: "chicken-chaap",
-            title: menuData["Main Course & Breads"].find(item => item.name === "CHICKEN CHAAP ( 1 PC)")?.name || "Chicken Chaap",
-            restaurant: "The Biryani Canteen",
-            description: "Slow-cooked chicken in a rich, poppy seed and cashew gravy.",
-            price: `₹${menuData["Main Course & Breads"].find(item => item.name === "CHICKEN CHAAP ( 1 PC)")?.price || "100"}`,
-            rating: "4.8",
-            eta: "25-30 mins",
-            image: "https://images.unsplash.com/photo-1603894584373-5ac82b0f5013?q=80&w=800&auto=format&fit=crop",
-            badge: "CHEF PICK",
-            proDiscount: "Pro extra 10% OFF"
-        },
-        {
-            id: "chicken-kasha",
-            title: menuData["Main Course & Breads"].find(item => item.name === "CHICKEN KASHA (2 PCS)")?.name || "Chicken Kasha (2 Pcs)",
-            restaurant: "The Biryani Canteen",
-            description: "Traditional Bengali style spicy chicken curry.",
-            price: `₹${menuData["Main Course & Breads"].find(item => item.name === "CHICKEN KASHA (2 PCS)")?.price || "80"}`,
-            rating: "4.7",
-            eta: "20-25 mins",
-            image: "https://images.unsplash.com/photo-1589187151003-8dc9c058778f?q=80&w=800&auto=format&fit=crop",
-            badge: "MUST TRY"
-        },
-        {
-            id: "dal-makhani",
-            title: menuData["Main Course & Breads"].find(item => item.name === "DAL MAKHANI")?.name || "Dal Makhani",
-            restaurant: "The Biryani Canteen",
-            description: "Black lentils simmered overnight with butter and cream.",
-            price: `₹${menuData["Main Course & Breads"].find(item => item.name === "DAL MAKHANI")?.price || "80"}`,
-            rating: "4.6",
-            eta: "20-25 mins",
-            image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?q=80&w=800&auto=format&fit=crop",
-            badge: "POPULAR"
-        },
-        {
-            id: "butter-naan",
-            title: menuData["Main Course & Breads"].find(item => item.name === "BUTTER NAAN")?.name || "Butter Naan",
-            restaurant: "The Biryani Canteen",
-            description: "Soft tandoori bread glazed with fresh butter.",
-            price: `₹${menuData["Main Course & Breads"].find(item => item.name === "BUTTER NAAN")?.price || "50"}`,
-            rating: "4.5",
-            eta: "10-15 mins",
-            image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=800&auto=format&fit=crop",
-            badge: "FRESH"
-        },
-    ];
+            description: `A delicious ${item.name.toLowerCase()} from our ${category.toLowerCase()} selection.`,
+            price: `₹${item.price.split('/')[0]}`, // Handle prices like "120/150"
+            rating: (4.9 - (index * 0.1)).toFixed(1),
+            eta: `${20 + index * 5}-${25 + index * 5} mins`,
+            image: images[index % images.length],
+            badge: badges[index % badges.length],
+            ...(index === 0 ? { discount: "Flat ₹20 OFF" } : {}),
+            ...(index === 1 ? { proDiscount: "Pro extra 10% OFF" } : {})
+        };
+    });
 
     return (
         <section className="py-6 px-5 overflow-hidden">
@@ -153,6 +126,16 @@ export default function ChefSpecials() {
                                         <span className="text-slate-900 dark:text-white font-black text-sm">{item.price}</span>
                                     </div>
                                     <motion.button
+                                        onClick={(e: any) => {
+                                            e.preventDefault();
+                                            addItem({
+                                                id: item.id,
+                                                name: item.title,
+                                                price: parseFloat(item.price.replace('₹', '')),
+                                                quantity: 1,
+                                                restaurant: item.restaurant
+                                            });
+                                        }}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         className="text-[11px] font-bold text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 px-3 py-1.5 rounded-lg border border-red-100 dark:border-red-900/30"

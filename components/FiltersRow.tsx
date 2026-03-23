@@ -1,23 +1,30 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 export default function FiltersRow() {
-    const filters = [
+    const [filters, setFilters] = useState([
         { id: "sort", label: "Filters", icon: "tune", active: false },
         { id: "fast", label: "Near & Fast", icon: "bolt", active: true },
         { id: "loved", label: "Loved by friends", icon: "diversity_1", active: false },
         { id: "spicy", label: "Spicy", icon: "local_fire_department", active: false },
         { id: "offers", label: "Great Offers", icon: "sell", active: false },
         { id: "rated", label: "Top Rated", icon: "star", active: false },
-    ];
+    ]);
+
+    const toggleFilter = (id: string) => {
+        if (id === "sort") return; // Keep "sort" inactive for now
+        setFilters(filters.map((f: any) => f.id === id ? { ...f, active: !f.active } : f));
+    };
 
     return (
         <section className="px-5 pb-6 pt-0 overflow-hidden bg-white dark:bg-slate-950">
             <div className="flex gap-2.5 overflow-x-auto scrollbar-hide py-2 snap-x">
-                {filters.map((filter, index) => (
+                {filters.map((filter: any, index: number) => (
                     <motion.button
                         key={filter.id}
+                        onClick={() => toggleFilter(filter.id)}
                         whileHover={{ scale: 1.02, y: -0.5 }}
                         whileTap={{ scale: 0.98 }}
                         className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border shrink-0 snap-start transition-all text-[12px] font-black uppercase tracking-tighter ${filter.active

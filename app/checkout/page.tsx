@@ -5,12 +5,17 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
+import { PREDESTINED_LOCATIONS } from "@/constants/locations";
 
 export default function Checkout() {
     const router = useRouter();
     const { items, getSubtotal, getTax, getTotal, clearCart } = useCartStore();
     const [paymentMethod, setPaymentMethod] = useState("upi");
     const [swiped, setSwiped] = useState(false);
+
+    const [selectedBuilding, setSelectedBuilding] = useState("");
+    const [selectedFloor, setSelectedFloor] = useState("");
+    const [selectedRoom, setSelectedRoom] = useState("");
 
     const subtotal = getSubtotal();
     const taxes = getTax();
@@ -27,6 +32,12 @@ export default function Checkout() {
     const handleDragEnd = () => {
         const x = dragX.get();
         if (x > 200) {
+            if (!selectedBuilding || !selectedFloor || !selectedRoom) {
+                alert("Please select your complete building, floor, and room for delivery before checking out.");
+                animate(dragX, 0, { type: "spring", stiffness: 300 });
+                return;
+            }
+
             animate(dragX, 290, { type: "spring", stiffness: 300 });
             setSwiped(true);
 
@@ -74,23 +85,75 @@ export default function Checkout() {
                         <h2 className="font-bold text-royal-blue dark:text-slate-200">
                             Delivery Details
                         </h2>
-                        <button className="text-terracotta text-sm font-bold uppercase hover:underline">
-                            Edit
-                        </button>
                     </div>
-                    <div className="flex items-start gap-3 text-slate-600 dark:text-slate-400">
-                        <div className="bg-primary/10 rounded-lg p-2">
-                            <span className="material-symbols-outlined text-primary">
-                                location_on
-                            </span>
-                        </div>
+                    
+                    <div className="space-y-4">
+                        {/* Building Dropdown */}
                         <div>
-                            <p className="font-bold text-slate-800 dark:text-slate-200">
-                                Home
-                            </p>
-                            <p className="text-sm">123 Heritage Lane, Nizam Block</p>
-                            <p className="text-sm">Hyderabad, 500001</p>
+                            <label className="block text-xs font-bold text-slate-500 pt-1 pb-1.5 uppercase tracking-wider">Building</label>
+                            <div className="relative">
+                                <select 
+                                    className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
+                                    value={selectedBuilding}
+                                    onChange={(e) => {
+                                        setSelectedBuilding(e.target.value);
+                                        setSelectedFloor("");
+                                        setSelectedRoom("");
+                                    }}
+                                >
+                                    <option value="" disabled>Select Building</option>
+                                    {PREDESTINED_LOCATIONS.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                </select>
+                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                            </div>
                         </div>
+
+                        {/* Floor Dropdown */}
+                        <motion.div 
+                            initial={false}
+                            animate={{ opacity: selectedBuilding ? 1 : 0.5 }}
+                        >
+                            <label className="block text-xs font-bold text-slate-500 pt-1 pb-1.5 uppercase tracking-wider">Floor</label>
+                            <div className="relative">
+                                <select 
+                                    className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                                    value={selectedFloor}
+                                    onChange={(e) => {
+                                        setSelectedFloor(e.target.value);
+                                        setSelectedRoom("");
+                                    }}
+                                    disabled={!selectedBuilding}
+                                >
+                                    <option value="" disabled>Select Floor</option>
+                                    {selectedBuilding && PREDESTINED_LOCATIONS.find(b => b.id === selectedBuilding)?.floors.map(f => (
+                                        <option key={f.id} value={f.id}>{f.name}</option>
+                                    ))}
+                                </select>
+                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                            </div>
+                        </motion.div>
+
+                        {/* Room Dropdown */}
+                        <motion.div
+                            initial={false}
+                            animate={{ opacity: selectedFloor ? 1 : 0.5 }}
+                        >
+                            <label className="block text-xs font-bold text-slate-500 pt-1 pb-1.5 uppercase tracking-wider">Room</label>
+                            <div className="relative">
+                                <select 
+                                    className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                                    value={selectedRoom}
+                                    onChange={(e) => setSelectedRoom(e.target.value)}
+                                    disabled={!selectedFloor}
+                                >
+                                    <option value="" disabled>Select Room</option>
+                                    {selectedFloor && PREDESTINED_LOCATIONS.find(b => b.id === selectedBuilding)?.floors.find(f => f.id === selectedFloor)?.rooms.map(r => (
+                                        <option key={r} value={r}>Room {r}</option>
+                                    ))}
+                                </select>
+                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                            </div>
+                        </motion.div>
                     </div>
                 </motion.section>
 

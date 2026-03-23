@@ -1,8 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 export default function BuildFeast() {
+    const router = useRouter();
     return (
         <section className="p-5 py-10">
             <motion.div
@@ -40,6 +42,7 @@ export default function BuildFeast() {
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    onClick={() => router.push('/menu')}
                     className="bg-royal-blue text-white font-bold py-3.5 px-8 rounded-full shadow-lg shadow-royal-blue/30 active:scale-95 transition-all text-sm tracking-wide border-2 border-transparent hover:border-royal-blue/20"
                 >
                     Explore Menu

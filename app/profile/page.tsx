@@ -5,7 +5,15 @@ import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 
 const MenuItem = ({ icon, title, subtitle, href }: { icon: string; title: string; subtitle?: string; href: string }) => (
-    <Link href={href}>
+    <Link 
+        href={href === "#" ? "" : href}
+        onClick={(e) => {
+            if (href === "#") {
+                e.preventDefault();
+                alert("Feature coming soon!");
+            }
+        }}
+    >
         <motion.div
             whileTap={{ scale: 0.98 }}
             className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/80 rounded-2xl mb-3 premium-shadow border border-slate-50 dark:border-slate-800"
@@ -139,6 +147,10 @@ export default function Profile() {
 
                     <motion.button
                         whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                            alert("Logged out successfully!");
+                            window.location.href = "/";
+                        }}
                         className="w-full flex items-center justify-center gap-2 p-4 mt-8 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-2xl font-black text-sm uppercase tracking-widest border border-red-100 dark:border-red-900/30"
                     >
                         <span className="material-symbols-outlined text-sm">logout</span>

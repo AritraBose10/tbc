@@ -2,6 +2,7 @@
 
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const carouselItems = [
     {
@@ -25,6 +26,7 @@ const carouselItems = [
 ];
 
 export default function Hero() {
+    const router = useRouter();
     const ref = useRef<HTMLElement>(null);
     const { scrollYProgress } = useScroll({
         target: ref,
@@ -102,6 +104,7 @@ export default function Hero() {
                 <motion.button
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
+                    onClick={() => router.push('/menu')}
                     className="mt-5 bg-white backdrop-blur text-royal-blue px-6 py-3 rounded-full font-bold text-sm uppercase tracking-wider shadow-xl shadow-black/20 flex items-center gap-2"
                 >
                     <span>Order Now</span>
