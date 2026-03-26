@@ -6,7 +6,7 @@ export interface CartItem {
     name: string;
     price: number;
     quantity: number;
-    image: string;
+    image?: string;
     category?: string;
     isVeg?: boolean;
     portion?: string;
@@ -14,7 +14,7 @@ export interface CartItem {
 
 interface CartStore {
     items: CartItem[];
-    addItem: (product: any) => void;
+    addItem: (product: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
     removeItem: (id: string) => void;
     updateQuantity: (id: string, delta: number) => void;
     clearCart: () => void;
@@ -31,8 +31,8 @@ export const useCartStore = create<CartStore>()(
 
             addItem: (product) => {
                 set((state) => {
-                    const existingItem = state.items.find((item) => item.id === product.id);
-                    if (existingItem) {
+                    const existing = state.items.find((item) => item.id === product.id);
+                    if (existing) {
                         return {
                             items: state.items.map((item) =>
                                 item.id === product.id
@@ -53,31 +53,27 @@ export const useCartStore = create<CartStore>()(
 
             updateQuantity: (id, delta) => {
                 set((state) => ({
-                    items: state.items.map((item) =>
-                        item.id === id
-                            ? { ...item, quantity: Math.max(0, item.quantity + delta) }
-                            : item
-                    ).filter(item => item.quantity > 0),
+                    items: state.items
+                        .map((item) =>
+                            item.id === id
+                                ? { ...item, quantity: Math.max(0, item.quantity + delta) }
+                                : item
+                        )
+                        .filter((item) => item.quantity > 0),
                 }));
             },
 
             clearCart: () => set({ items: [] }),
 
-            getTotalItems: () => {
-                return get().items.reduce((total, item) => total + item.quantity, 0);
-            },
+            getTotalItems: () =>
+                get().items.reduce((total, item) => total + item.quantity, 0),
 
-            getSubtotal: () => {
-                return get().items.reduce((total, item) => total + item.price * item.quantity, 0);
-            },
+            getSubtotal: () =>
+                get().items.reduce((total, item) => total + item.price * item.quantity, 0),
 
-            getTax: () => {
-                return get().getSubtotal() * 0.1;
-            },
+            getTax: () => get().getSubtotal() * 0.1,
 
-            getTotal: () => {
-                return get().getSubtotal() + get().getTax();
-            },
+            getTotal: () => get().getSubtotal() + get().getTax(),
         }),
         {
             name: 'tbc-cart-storage',

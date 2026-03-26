@@ -25,22 +25,23 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <AnimatePresence>
             {isOpen && (
                 <>
-                    {/* Backdrop */}
+                    {/* Backdrop — z-50 covers sticky z-40 header */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40"
+                        className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50"
                     />
 
-                    {/* Sidebar Drawer */}
+                    {/* Drawer — z-[60] sits above backdrop */}
                     <motion.aside
                         initial={{ x: "-100%" }}
                         animate={{ x: 0 }}
                         exit={{ x: "-100%" }}
-                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                        className="fixed top-0 left-0 bottom-0 w-[280px] bg-white dark:bg-slate-950 shadow-2xl z-50 flex flex-col"
+                        transition={{ type: "spring", damping: 28, stiffness: 220 }}
+                        className="fixed top-0 left-0 bottom-0 w-[280px] bg-white dark:bg-slate-950 shadow-2xl z-[60] flex flex-col"
                     >
                         <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
                             <div className="flex items-center gap-3">
@@ -48,8 +49,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                     TBC
                                 </div>
                                 <div>
-                                    <h2 className="font-black text-lg text-slate-900 dark:text-white leading-none">The Bengal Canteen</h2>
-                                    <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500">Student Menu</span>
+                                    <h2 className="font-black text-lg text-slate-900 dark:text-white leading-none">The Biryani Canteen</h2>
+                                    <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500">Multi-Cuisine Kitchen</span>
                                 </div>
                             </div>
                             <button
@@ -80,18 +81,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 );
                             })}
                         </nav>
-                        
+
                         <div className="p-6 border-t border-slate-100 dark:border-slate-800">
-                            <button
-                                onClick={() => {
-                                    alert("Logout functionality coming soon!");
-                                    onClose();
-                                }}
-                                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
-                            >
-                                <span className="material-symbols-outlined text-[20px]">logout</span>
-                                Logout
-                            </button>
+                            <p className="text-xs text-center text-slate-400 dark:text-slate-600 font-medium">
+                                The Biryani Canteen &copy; 2025
+                            </p>
                         </div>
                     </motion.aside>
                 </>

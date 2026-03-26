@@ -10,8 +10,8 @@ import { PREDESTINED_LOCATIONS } from "@/constants/locations";
 export default function Checkout() {
     const router = useRouter();
     const { items, getSubtotal, getTax, getTotal, clearCart } = useCartStore();
-    const [paymentMethod, setPaymentMethod] = useState("upi");
     const [swiped, setSwiped] = useState(false);
+    const [error, setError] = useState("");
 
     const [selectedBuilding, setSelectedBuilding] = useState("");
     const [selectedFloor, setSelectedFloor] = useState("");
@@ -33,15 +33,13 @@ export default function Checkout() {
         const x = dragX.get();
         if (x > 200) {
             if (!selectedBuilding || !selectedFloor || !selectedRoom) {
-                alert("Please select your complete building, floor, and room for delivery before checking out.");
+                setError("Please select your building, floor, and room first.");
                 animate(dragX, 0, { type: "spring", stiffness: 300 });
                 return;
             }
-
+            setError("");
             animate(dragX, 290, { type: "spring", stiffness: 300 });
             setSwiped(true);
-
-            // Simulate order processing and redirect
             setTimeout(() => {
                 clearCart();
                 router.push("/tracking");
@@ -52,12 +50,12 @@ export default function Checkout() {
     };
 
     return (
-        <main className="bg-background-light dark:bg-background-dark min-h-screen pb-44 mughal-pattern font-display">
+        <main className="bg-[#FFFDF0] dark:bg-background-dark min-h-screen pb-44">
             {/* Header */}
             <motion.div
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="sticky top-0 z-50 flex items-center justify-between p-4 bg-white dark:bg-background-dark border-b border-slate-100 dark:border-slate-800"
+                className="sticky top-0 z-40 flex items-center justify-between p-4 bg-[#FFFDF0] dark:bg-background-dark border-b border-slate-100 dark:border-slate-800"
             >
                 <Link href="/cart">
                     <motion.div
@@ -67,56 +65,54 @@ export default function Checkout() {
                         <span className="material-symbols-outlined">arrow_back</span>
                     </motion.div>
                 </Link>
-                <h1 className="text-xl font-extrabold text-royal-blue dark:text-white">
-                    Secure Checkout
-                </h1>
+                <h1 className="text-xl font-extrabold text-royal-blue dark:text-white">Checkout</h1>
                 <div className="w-10" />
             </motion.div>
 
-            <div className="p-5 space-y-6 mt-2">
-                {/* Delivery Details */}
+            <div className="p-5 space-y-5 mt-2">
+
+                {/* Delivery Location */}
                 <motion.section
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-white dark:bg-slate-900/80 rounded-2xl p-6 premium-shadow glow-border"
+                    className="bg-white dark:bg-slate-900/80 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-800"
                 >
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="font-bold text-royal-blue dark:text-slate-200">
-                            Delivery Details
-                        </h2>
+                    <div className="flex items-center gap-2 mb-4">
+                        <span className="material-symbols-outlined text-royal-blue dark:text-primary text-xl">location_on</span>
+                        <h2 className="font-bold text-slate-800 dark:text-slate-200">Delivery Location</h2>
                     </div>
-                    
-                    <div className="space-y-4">
-                        {/* Building Dropdown */}
+
+                    <div className="space-y-3">
+                        {/* Building */}
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 pt-1 pb-1.5 uppercase tracking-wider">Building</label>
+                            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Building</label>
                             <div className="relative">
-                                <select 
-                                    className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
+                                <select
+                                    className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary transition-colors cursor-pointer"
                                     value={selectedBuilding}
                                     onChange={(e) => {
                                         setSelectedBuilding(e.target.value);
                                         setSelectedFloor("");
                                         setSelectedRoom("");
+                                        setError("");
                                     }}
                                 >
                                     <option value="" disabled>Select Building</option>
-                                    {PREDESTINED_LOCATIONS.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                    {PREDESTINED_LOCATIONS.map((b) => (
+                                        <option key={b.id} value={b.id}>{b.name}</option>
+                                    ))}
                                 </select>
-                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
                             </div>
                         </div>
 
-                        {/* Floor Dropdown */}
-                        <motion.div 
-                            initial={false}
-                            animate={{ opacity: selectedBuilding ? 1 : 0.5 }}
-                        >
-                            <label className="block text-xs font-bold text-slate-500 pt-1 pb-1.5 uppercase tracking-wider">Floor</label>
+                        {/* Floor */}
+                        <div className={selectedBuilding ? "opacity-100" : "opacity-40 pointer-events-none"}>
+                            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Floor</label>
                             <div className="relative">
-                                <select 
-                                    className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                                <select
+                                    className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary transition-colors cursor-pointer disabled:cursor-not-allowed"
                                     value={selectedFloor}
                                     onChange={(e) => {
                                         setSelectedFloor(e.target.value);
@@ -125,35 +121,52 @@ export default function Checkout() {
                                     disabled={!selectedBuilding}
                                 >
                                     <option value="" disabled>Select Floor</option>
-                                    {selectedBuilding && PREDESTINED_LOCATIONS.find(b => b.id === selectedBuilding)?.floors.map(f => (
-                                        <option key={f.id} value={f.id}>{f.name}</option>
-                                    ))}
+                                    {selectedBuilding &&
+                                        PREDESTINED_LOCATIONS.find((b) => b.id === selectedBuilding)?.floors.map((f) => (
+                                            <option key={f.id} value={f.id}>{f.name}</option>
+                                        ))}
                                 </select>
-                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
                             </div>
-                        </motion.div>
+                        </div>
 
-                        {/* Room Dropdown */}
-                        <motion.div
-                            initial={false}
-                            animate={{ opacity: selectedFloor ? 1 : 0.5 }}
-                        >
-                            <label className="block text-xs font-bold text-slate-500 pt-1 pb-1.5 uppercase tracking-wider">Room</label>
+                        {/* Room */}
+                        <div className={selectedFloor ? "opacity-100" : "opacity-40 pointer-events-none"}>
+                            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Room</label>
                             <div className="relative">
-                                <select 
-                                    className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                                <select
+                                    className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary transition-colors cursor-pointer disabled:cursor-not-allowed"
                                     value={selectedRoom}
                                     onChange={(e) => setSelectedRoom(e.target.value)}
                                     disabled={!selectedFloor}
                                 >
                                     <option value="" disabled>Select Room</option>
-                                    {selectedFloor && PREDESTINED_LOCATIONS.find(b => b.id === selectedBuilding)?.floors.find(f => f.id === selectedFloor)?.rooms.map(r => (
-                                        <option key={r} value={r}>Room {r}</option>
-                                    ))}
+                                    {selectedFloor &&
+                                        PREDESTINED_LOCATIONS.find((b) => b.id === selectedBuilding)
+                                            ?.floors.find((f) => f.id === selectedFloor)
+                                            ?.rooms.map((r) => (
+                                                <option key={r} value={r}>Room {r}</option>
+                                            ))}
                                 </select>
-                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
                             </div>
-                        </motion.div>
+                        </div>
+
+                        {/* Selected summary */}
+                        {selectedBuilding && selectedFloor && selectedRoom && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl px-4 py-3 mt-1"
+                            >
+                                <span className="material-symbols-outlined text-green-600 text-base">check_circle</span>
+                                <span className="text-xs font-bold text-green-700 dark:text-green-400">
+                                    Delivering to Room {selectedRoom},{" "}
+                                    {PREDESTINED_LOCATIONS.find((b) => b.id === selectedBuilding)?.floors.find((f) => f.id === selectedFloor)?.name},{" "}
+                                    {PREDESTINED_LOCATIONS.find((b) => b.id === selectedBuilding)?.name}
+                                </span>
+                            </motion.div>
+                        )}
                     </div>
                 </motion.section>
 
@@ -162,137 +175,105 @@ export default function Checkout() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="bg-white dark:bg-slate-900/80 rounded-2xl p-6 premium-shadow glow-border"
+                    className="bg-white dark:bg-slate-900/80 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-800"
                 >
-                    <h2 className="font-bold text-royal-blue dark:text-slate-200 mb-5">
-                        Order Summary
-                    </h2>
-                    <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-4">
+                        <span className="material-symbols-outlined text-royal-blue dark:text-primary text-xl">receipt_long</span>
+                        <h2 className="font-bold text-slate-800 dark:text-slate-200">Order Summary</h2>
+                    </div>
+
+                    <div className="space-y-3 mb-4">
                         {items.map((item) => (
-                            <div key={item.id} className="flex justify-between items-start">
-                                <div>
-                                    <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                                        {item.quantity}x {item.name}
+                            <div key={item.id} className="flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                    <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-black rounded-lg px-2 py-0.5 min-w-[28px] text-center">
+                                        {item.quantity}x
+                                    </span>
+                                    <p className="font-semibold text-sm text-slate-800 dark:text-slate-200 leading-tight">
+                                        {item.name}
                                     </p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Portion: {item.portion || "Standard"}</p>
                                 </div>
-                                <p className="font-bold text-sm dark:text-slate-200">₹{(item.price * item.quantity).toFixed(2)}</p>
+                                <p className="font-bold text-sm text-slate-800 dark:text-slate-200 shrink-0 ml-2">
+                                    &#8377;{(item.price * item.quantity).toFixed(0)}
+                                </p>
                             </div>
                         ))}
                     </div>
-                    <div className="h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent my-5" />
-                    <div className="space-y-2.5 text-sm">
+
+                    <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-2.5 text-sm">
                         <div className="flex justify-between text-slate-500 dark:text-slate-400">
                             <span>Subtotal</span>
-                            <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                ₹{subtotal.toFixed(2)}
-                            </span>
+                            <span className="font-semibold text-slate-700 dark:text-slate-300">&#8377;{subtotal.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-slate-500 dark:text-slate-400">
                             <span>Taxes &amp; Fees</span>
-                            <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                ₹{taxes.toFixed(2)}
-                            </span>
+                            <span className="font-semibold text-slate-700 dark:text-slate-300">&#8377;{taxes.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                            <span>Delivery (Royal Express)</span>
+                            <span>Delivery</span>
                             <span className="text-green-600 font-bold">FREE</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-1 border-t border-slate-100 dark:border-slate-800">
+                            <span className="font-bold text-slate-800 dark:text-white">Total</span>
+                            <span className="font-extrabold text-lg text-terracotta" style={{ fontFamily: "system-ui, sans-serif" }}>
+                                &#8377;{total.toFixed(2)}
+                            </span>
                         </div>
                     </div>
                 </motion.section>
 
-                {/* Payment Options */}
+                {/* Payment */}
                 <motion.section
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="space-y-3"
+                    className="bg-white dark:bg-slate-900/80 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-800"
                 >
-                    <h2 className="font-bold text-royal-blue dark:text-slate-200 ml-1 mb-1">
-                        Payment Method
-                    </h2>
-
-                    {[
-                        {
-                            id: "upi",
-                            label: "Pay via UPI",
-                            sub: "Recommended for instant refund",
-                            icon: (
-                                <span className="font-black text-[10px] text-primary">UPI</span>
-                            ),
-                        },
-                        {
-                            id: "card",
-                            label: "Credit / Debit Card",
-                            sub: null,
-                            icon: (
-                                <span className="material-symbols-outlined text-slate-500 text-lg">
-                                    credit_card
-                                </span>
-                            ),
-                        },
-                    ].map((method) => (
-                        <motion.div
-                            key={method.id}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => setPaymentMethod(method.id)}
-                            className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer ${paymentMethod === method.id
-                                ? "border-primary bg-primary/5 glow-border"
-                                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 hover:border-primary/30"
-                                }`}
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center">
-                                    {method.icon}
-                                </div>
-                                <div>
-                                    <p className="font-bold text-sm text-slate-800 dark:text-slate-200">
-                                        {method.label}
-                                    </p>
-                                    {method.sub && (
-                                        <p className="text-[11px] text-green-600 font-bold">
-                                            {method.sub}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                            <div
-                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${paymentMethod === method.id
-                                    ? "border-primary"
-                                    : "border-slate-300"
-                                    }`}
-                            >
-                                {paymentMethod === method.id && (
-                                    <motion.div
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        transition={{ type: "spring", stiffness: 500 }}
-                                        className="w-2.5 h-2.5 bg-primary rounded-full"
-                                    />
-                                )}
-                            </div>
-                        </motion.div>
-                    ))}
+                    <div className="flex items-center gap-2 mb-3">
+                        <span className="material-symbols-outlined text-royal-blue dark:text-primary text-xl">payments</span>
+                        <h2 className="font-bold text-slate-800 dark:text-slate-200">Payment</h2>
+                    </div>
+                    <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-3.5">
+                        <span className="material-symbols-outlined text-green-600 text-xl">currency_rupee</span>
+                        <div>
+                            <p className="font-bold text-sm text-slate-800 dark:text-slate-200">Cash on Delivery</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Pay when your order arrives</p>
+                        </div>
+                        <div className="ml-auto w-5 h-5 rounded-full border-2 border-green-500 flex items-center justify-center">
+                            <div className="w-2.5 h-2.5 bg-green-500 rounded-full" />
+                        </div>
+                    </div>
                 </motion.section>
+
+                {/* Error message */}
+                {error && (
+                    <motion.p
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-center text-sm font-bold text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl px-4 py-3"
+                    >
+                        {error}
+                    </motion.p>
+                )}
             </div>
 
-            {/* Swipe to Pay Fixed Bottom */}
+            {/* Swipe to Pay */}
             <motion.div
                 initial={{ y: 100 }}
                 animate={{ y: 0 }}
                 transition={{ type: "spring", stiffness: 100, delay: 0.4 }}
-                className="fixed bottom-0 left-0 right-0 p-5 bg-white dark:bg-background-dark z-50 rounded-t-3xl border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]"
+                className="fixed bottom-0 left-0 right-0 p-5 bg-white dark:bg-background-dark z-50 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]"
             >
-                <div className="flex justify-between items-center mb-5 px-1">
-                    <span className="text-slate-500 dark:text-slate-400 font-medium text-sm">
-                        Amount to Pay
-                    </span>
-                    <span className="text-2xl font-black text-royal-blue dark:text-white">
-                        ₹{total.toFixed(2)}
+                <div className="flex justify-between items-center mb-4 px-1">
+                    <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Amount to Pay</span>
+                    <span
+                        className="text-2xl font-extrabold text-royal-blue dark:text-white"
+                        style={{ fontFamily: "system-ui, sans-serif" }}
+                    >
+                        &#8377;{total.toFixed(2)}
                     </span>
                 </div>
 
-                {/* Real Drag Swipe Button */}
                 <motion.div
                     style={{ backgroundColor: dragBg }}
                     className="relative w-full h-16 rounded-full flex items-center justify-center overflow-hidden"
@@ -307,9 +288,7 @@ export default function Checkout() {
                             whileTap={{ scale: 0.95 }}
                             className="absolute left-1.5 top-1.5 bottom-1.5 w-13 bg-white rounded-full flex items-center justify-center z-10 cursor-grab active:cursor-grabbing shadow-lg"
                         >
-                            <span className="material-symbols-outlined text-terracotta">
-                                double_arrow
-                            </span>
+                            <span className="material-symbols-outlined text-terracotta">double_arrow</span>
                         </motion.div>
                     )}
 
@@ -319,24 +298,19 @@ export default function Checkout() {
                             animate={{ scale: 1 }}
                             className="flex items-center gap-2"
                         >
-                            <span className="material-symbols-outlined text-white">
-                                check_circle
-                            </span>
-                            <span className="text-white font-black uppercase tracking-widest text-sm" >
-                                Order Placed!
-                            </span>
+                            <span className="material-symbols-outlined text-white">check_circle</span>
+                            <span className="text-white font-black uppercase tracking-widest text-sm">Order Placed!</span>
                         </motion.div>
                     ) : (
                         <motion.span
                             style={{ opacity: dragOpacity }}
-                            className="text-white font-black uppercase tracking-widest text-sm z-0 pl-10"
+                            className="text-white font-black uppercase tracking-widest text-sm z-0 pl-12"
                         >
-                            Swipe To Pay
+                            Swipe to Confirm
                         </motion.span>
                     )}
                 </motion.div>
             </motion.div>
-
         </main>
     );
 }

@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
+import { useVegStore } from "@/store/useVegStore";
 import menuData from "@/data/menu_clean.json";
 
 function MenuContent() {
@@ -13,10 +14,10 @@ function MenuContent() {
     const categoryParam = searchParams.get("category");
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("All");
-    const [isVegOnly, setIsVegOnly] = useState(false);
     const [hydrated, setHydrated] = useState(false);
 
     const { items: cartItems, addItem, updateQuantity } = useCartStore();
+    const { isVeg: isVegOnly } = useVegStore();
 
     useEffect(() => {
         setHydrated(true);
@@ -27,53 +28,49 @@ function MenuContent() {
 
     const categories = ["All", ...Object.keys(menuData)];
 
-    // Memoize all menu items from the categorized object once
     const menuItems = useMemo(() => {
         const items: any[] = [];
         Object.entries(menuData).forEach(([category, catItems]) => {
             (catItems as any[]).forEach((item, index) => {
-                // Generate a stable ID if none exists
-                const id = `${category.replace(/\s+/g, '-')}-${index}`;
+                const id = `${category.replace(/\s+/g, "-")}-${index}`;
                 items.push({ ...item, category, id });
             });
         });
         return items;
     }, []);
 
-    // Get quantity for a specific item
     const getItemQuantity = (id: string) => {
         if (!hydrated) return 0;
-        return cartItems.find(item => item.id === id)?.quantity || 0;
+        return cartItems.find((item) => item.id === id)?.quantity || 0;
     };
 
-    // Memoize filtered items
     const filteredItems = useMemo(() => {
-        const filtered = menuItems.filter(item => {
-            const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        return menuItems.filter((item) => {
+            const matchesSearch =
+                item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 (item.description || "").toLowerCase().includes(searchQuery.toLowerCase());
             const matchesCategory = activeCategory === "All" || item.category === activeCategory;
             const matchesVeg = !isVegOnly || item.isVeg === true;
             return matchesSearch && matchesCategory && matchesVeg;
         });
-        return filtered;
     }, [searchQuery, activeCategory, isVegOnly, menuItems]);
 
     return (
-        <main className="min-h-screen bg-[#FFFDF0] dark:bg-background-dark pb-24">
-            <Header
-                onSearch={setSearchQuery}
-                isVeg={isVegOnly}
-                onVegToggle={setIsVegOnly}
-            />
+        <main className="min-h-screen bg-[#FFFDF0] dark:bg-background-dark pb-40">
+            <Header onSearch={setSearchQuery} />
 
             <div className="px-5 py-4">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
                         Our <span className="text-terracotta">Menu</span>
                     </h2>
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                        100% Fresh
+                    <div className="flex items-center gap-2">
+                        {isVegOnly && (
+                            <span className="flex items-center gap-1 text-green-600 bg-green-50 dark:bg-green-900/20 px-2.5 py-1 rounded-full text-[10px] font-black border border-green-200 dark:border-green-800">
+                                <span className="w-2 h-2 rounded-full bg-green-600 inline-block" />
+                                Veg only
+                            </span>
+                        )}
                     </div>
                 </div>
 
@@ -83,17 +80,18 @@ function MenuContent() {
                         <button
                             key={cat}
                             onClick={() => setActiveCategory(cat)}
-                            className={`px-5 py-2.5 rounded-full text-xs font-black whitespace-nowrap transition-all shadow-sm ${activeCategory === cat
-                                ? "bg-[#0A2647] text-white shadow-md scale-105"
-                                : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-slate-700"
-                                }`}
+                            className={`px-5 py-2.5 rounded-full text-xs font-black whitespace-nowrap transition-all shadow-sm ${
+                                activeCategory === cat
+                                    ? "bg-[#0A2647] text-white shadow-md scale-105"
+                                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-slate-700"
+                            }`}
                         >
                             {cat}
                         </button>
                     ))}
                 </div>
 
-                {/* Menu Items Grid */}
+                {/* Menu Items */}
                 <div className="grid grid-cols-1 gap-4">
                     {filteredItems.map((item) => {
                         const quantity = getItemQuantity(item.id);
@@ -107,28 +105,38 @@ function MenuContent() {
                             >
                                 <div className="flex-1 pr-4">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className={`w-3 h-3 border flex items-center justify-center p-[2px] ${item.isVeg ? 'border-green-600' : 'border-red-600'}`}>
-                                            <div className={`w-full h-full rounded-full ${item.isVeg ? 'bg-green-600' : 'bg-red-600'}`}></div>
+                                        <span
+                                            className="w-3 h-3 border flex items-center justify-center p-[2px]"
+                                            style={{ borderColor: item.isVeg ? "#16a34a" : "#dc2626" }}
+                                        >
+                                            <div
+                                                className="w-full h-full rounded-full"
+                                                style={{ backgroundColor: item.isVeg ? "#16a34a" : "#dc2626" }}
+                                            />
                                         </span>
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.category}</span>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                            {item.category}
+                                        </span>
                                     </div>
-                                    <h3 className="text-sm font-black text-slate-800 dark:text-white mb-1 group-hover:text-terracotta transition-colors">{item.name}</h3>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm font-black text-royal-blue dark:text-primary">₹{item.price}</span>
-                                    </div>
+                                    <h3 className="text-sm font-black text-slate-800 dark:text-white mb-1 group-hover:text-terracotta transition-colors">
+                                        {item.name}
+                                    </h3>
+                                    <span className="text-sm font-black text-royal-blue dark:text-primary">
+                                        ₹{item.price}
+                                    </span>
                                 </div>
 
                                 <div className="flex items-center">
                                     {quantity === 0 ? (
                                         <motion.button
                                             whileTap={{ scale: 0.9 }}
-                                            onClick={() => addItem({
-                                                id: item.id,
-                                                name: item.name,
-                                                price: Number(item.price),
-                                                image: item.image || "https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?auto=format&fit=crop&q=80&w=200",
-                                                portion: "Standard"
-                                            })}
+                                            onClick={() =>
+                                                addItem({
+                                                    id: item.id,
+                                                    name: item.name,
+                                                    price: Number(item.price.split("/")[0]),
+                                                })
+                                            }
                                             className="h-10 px-4 bg-primary/10 dark:bg-primary/5 text-royal-blue dark:text-primary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all border border-primary/20"
                                         >
                                             Add +
@@ -142,7 +150,9 @@ function MenuContent() {
                                             >
                                                 <span className="material-symbols-outlined text-lg">remove</span>
                                             </motion.button>
-                                            <span className="text-xs font-black min-w-[12px] text-center">{quantity}</span>
+                                            <span className="text-xs font-black min-w-[12px] text-center">
+                                                {quantity}
+                                            </span>
                                             <motion.button
                                                 whileTap={{ scale: 0.8 }}
                                                 onClick={() => updateQuantity(item.id, 1)}
@@ -157,11 +167,14 @@ function MenuContent() {
                         );
                     })}
 
-
                     {filteredItems.length === 0 && (
                         <div className="py-20 text-center">
-                            <span className="material-symbols-outlined text-5xl text-slate-300 mb-4">search_off</span>
-                            <p className="text-slate-500 font-bold">No {isVegOnly ? 'vegetarian' : ''} items found matching your filter</p>
+                            <span className="material-symbols-outlined text-5xl text-slate-300 mb-4 block">
+                                search_off
+                            </span>
+                            <p className="text-slate-500 font-bold">
+                                No {isVegOnly ? "vegetarian " : ""}items found
+                            </p>
                         </div>
                     )}
                 </div>
@@ -174,13 +187,14 @@ function MenuContent() {
 
 export default function MenuPage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-[#FFFDF0] flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-            </div>
-        }>
+        <Suspense
+            fallback={
+                <div className="min-h-screen bg-[#FFFDF0] flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
+                </div>
+            }
+        >
             <MenuContent />
         </Suspense>
     );
 }
-

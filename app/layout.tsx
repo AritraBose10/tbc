@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import LoadingScreen from "@/components/LoadingScreen";
+import CartBar from "@/components/CartBar";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-display",
@@ -33,6 +34,7 @@ export default function RootLayout({
         <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden mughal-pattern">
           {children}
         </div>
+        <CartBar />
       </body>
     </html>
   );
