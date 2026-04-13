@@ -57,7 +57,7 @@ export default function RoyalPicks() {
                     <h3 className="text-slate-900 dark:text-slate-100 text-lg font-black tracking-tight">
                         Recommended for you
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Curated selections from our menu</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Curated selections from our menu</p>
                 </div>
             </motion.div>
 
@@ -91,17 +91,17 @@ export default function RoyalPicks() {
                                             style={{ backgroundColor: item.isVeg ? "#16a34a" : "#dc2626" }}
                                         />
                                     </span>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">
                                         {item.isVeg ? "Veg" : "Non-Veg"}
                                     </span>
                                 </div>
                                 <h6 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight mb-1">
                                     {item.name}
                                 </h6>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-2">
+                                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold mb-2">
                                     The Biryani Canteen
                                 </p>
-                                <span className="font-black text-royal-blue dark:text-primary text-sm">
+                                <span className="font-black text-[#002366] dark:text-primary text-sm">
                                     ₹{item.price}
                                 </span>
                             </div>
