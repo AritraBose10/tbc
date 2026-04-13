@@ -22,9 +22,9 @@ export default function LoadingScreen() {
                 <motion.div
                     key="loading-screen"
                     initial={{ opacity: 1 }}
-                    exit={{ 
+                    exit={{
                         opacity: 0,
-                        transition: { 
+                        transition: {
                             duration: 0.3,
                             delay: 0.5 // Match logo zoom duration (no extra gap)
                         }
@@ -35,15 +35,15 @@ export default function LoadingScreen() {
                         {/* Logo Container */}
                         <motion.div
                             initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ 
-                                scale: 1, 
+                            animate={{
+                                scale: 1,
                                 opacity: 1,
                                 transition: {
                                     duration: 0.5,
                                     ease: "easeOut"
                                 }
                             }}
-                            exit={{ 
+                            exit={{
                                 scale: 15, // Huge zoom outwards to cover screen
                                 opacity: 0,
                                 transition: {

@@ -45,24 +45,52 @@ export default function DishDetail({ params }: { params: Promise<{ id: string }>
 
     return (
         <main className="bg-[#FFFDF0] dark:bg-background-dark min-h-screen pb-28">
-            {/* Header / Back Navigation */}
-            <motion.div
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                className="sticky top-0 z-50 flex items-center justify-between p-4 bg-[#FFFDF0]/90 dark:bg-background-dark/90 backdrop-blur-sm border-b border-slate-100 dark:border-slate-800"
-            >
-                <Link href="/menu">
-                    <motion.div
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-white"
-                    >
-                        <span className="material-symbols-outlined">arrow_back</span>
-                    </motion.div>
-                </Link>
-                <span className="text-sm font-black text-slate-700 dark:text-white uppercase tracking-widest">{dish.category}</span>
-                <div className="w-10" />
-            </motion.div>
+            {/* Hero Image */}
+            {dish.image && (
+                <div className="relative h-64 w-full overflow-hidden">
+                    <img
+                        src={dish.image}
+                        alt={dish.name}
+                        className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                    {/* Back button overlaid on image */}
+                    <Link href="/menu" className="absolute top-4 left-4">
+                        <motion.div
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="flex items-center justify-center w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm text-slate-700 shadow"
+                        >
+                            <span className="material-symbols-outlined">arrow_back</span>
+                        </motion.div>
+                    </Link>
+                    <span className="absolute bottom-4 left-5 text-xs font-black text-white/80 uppercase tracking-widest">
+                        {dish.category}
+                    </span>
+                </div>
+            )}
+
+            {/* Fallback header when no image */}
+            {!dish.image && (
+                <motion.div
+                    initial={{ y: -20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    className="sticky top-0 z-50 flex items-center justify-between p-4 bg-[#FFFDF0]/90 dark:bg-background-dark/90 backdrop-blur-sm border-b border-slate-100 dark:border-slate-800"
+                >
+                    <Link href="/menu">
+                        <motion.div
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-white"
+                        >
+                            <span className="material-symbols-outlined">arrow_back</span>
+                        </motion.div>
+                    </Link>
+                    <span className="text-sm font-black text-slate-700 dark:text-white uppercase tracking-widest">{dish.category}</span>
+                    <div className="w-10" />
+                </motion.div>
+            )}
 
             {/* Dish Info Card */}
             <motion.div
@@ -110,7 +138,8 @@ export default function DishDetail({ params }: { params: Promise<{ id: string }>
                         id: dish.id,
                         name: dish.name,
                         price: basePrice,
-                        portion: "Standard"
+                        portion: "Standard",
+                        image: dish.image,
                     })}
                     className="w-full flex items-center justify-between bg-terracotta hover:bg-terracotta/90 text-white py-4 px-7 rounded-2xl shadow-xl shadow-terracotta/40"
                 >

@@ -101,12 +101,23 @@ function MenuContent() {
                                 key={item.id}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-slate-50 dark:border-slate-700/50 flex items-center justify-between group hover:shadow-md transition-shadow"
+                                className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-slate-50 dark:border-slate-700/50 flex items-center gap-3 group hover:shadow-md transition-shadow"
                             >
-                                <div className="flex-1 pr-4">
+                                {/* Dish thumbnail */}
+                                <div className="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-slate-100 dark:bg-slate-700">
+                                    {item.image && (
+                                        <img
+                                            src={item.image}
+                                            alt={item.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    )}
+                                </div>
+
+                                <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
                                         <span
-                                            className="w-3 h-3 border flex items-center justify-center p-[2px]"
+                                            className="w-3 h-3 border flex-shrink-0 flex items-center justify-center p-[2px]"
                                             style={{ borderColor: item.isVeg ? "#16a34a" : "#dc2626" }}
                                         >
                                             <div
@@ -114,11 +125,11 @@ function MenuContent() {
                                                 style={{ backgroundColor: item.isVeg ? "#16a34a" : "#dc2626" }}
                                             />
                                         </span>
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
                                             {item.category}
                                         </span>
                                     </div>
-                                    <h3 className="text-sm font-black text-slate-800 dark:text-white mb-1 group-hover:text-terracotta transition-colors">
+                                    <h3 className="text-sm font-black text-terracotta dark:text-terracotta mb-1 line-clamp-2">
                                         {item.name}
                                     </h3>
                                     <span className="text-sm font-black text-royal-blue dark:text-primary">
@@ -126,7 +137,7 @@ function MenuContent() {
                                     </span>
                                 </div>
 
-                                <div className="flex items-center">
+                                <div className="flex items-center flex-shrink-0">
                                     {quantity === 0 ? (
                                         <motion.button
                                             whileTap={{ scale: 0.9 }}
@@ -135,6 +146,7 @@ function MenuContent() {
                                                     id: item.id,
                                                     name: item.name,
                                                     price: Number(item.price.split("/")[0]),
+                                                    image: item.image,
                                                 })
                                             }
                                             className="h-10 px-4 bg-primary/10 dark:bg-primary/5 text-royal-blue dark:text-primary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all border border-primary/20"

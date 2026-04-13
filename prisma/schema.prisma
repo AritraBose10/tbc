@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Generic key-value store for Petpooja runtime configuration.
+// The most critical key is "restID" — received via the Push Menu webhook
+// and required in every Save Order call. "storeOpen" is also stored here.
+model PetpoojaConfig {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// Mirrors the item catalogue delivered by Petpooja's Push Menu webhook.
+// petpoojaId is the item ID that must be sent back verbatim in Save Order
+// item.id — it is NOT interchangeable with our internal menu IDs.
+model MenuItem {
+  petpoojaId   String   @id          // Petpooja's canonical item ID
+  name         String
+  price        Float
+  isAvailable  Boolean  @default(true)
+  categoryId   String   @default("")
+  categoryName String   @default("")
+  rawJson      String                 // Full item JSON blob from Push Menu (for audit / debugging)
+  updatedAt    DateTime @updatedAt
+}
+
+// Audit log of every order-status callback received from Petpooja.
+// We respond HTTP 200 immediately; this table is written asynchronously.
+// Use orderId to join with your Orders table when that model is added.
+model OrderCallback {
+  id         Int      @id @default(autoincrement())
+  orderId    String                               // Our internal order ID (echoed back by Petpooja)
+  status     String                               // Human-readable status, e.g. "accepted", "dispatched"
+  rawJson    String                               // Full callback payload for debugging
+  receivedAt DateTime @default(now())
+
+  @@index([orderId])
+}
