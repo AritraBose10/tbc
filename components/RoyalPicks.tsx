@@ -54,10 +54,18 @@ export default function RoyalPicks() {
         <section className="px-5 pb-6 overflow-hidden">
             <motion.div className="flex items-center justify-between mb-5">
                 <div>
-                    <h3 className="text-[#002366] dark:text-white text-xl font-extrabold tracking-tight">
+                    <h3
+                        className="text-xl font-extrabold tracking-tight"
+                        style={{ color: "#002366" }}
+                    >
                         Recommended for you
                     </h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-0.5">Curated selections from our menu</p>
+                    <p
+                        className="text-xs font-semibold mt-0.5"
+                        style={{ color: "#475569" }}
+                    >
+                        Curated selections from our menu
+                    </p>
                 </div>
             </motion.div>
 
@@ -70,7 +78,8 @@ export default function RoyalPicks() {
                     >
                         <Link
                             href={`/dish/${item.id}`}
-                            className="group flex gap-4 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-300 hover:shadow-md"
+                            className="group flex gap-4 rounded-2xl p-3 shadow-sm border border-slate-200 transition-all duration-300 hover:shadow-md"
+                            style={{ backgroundColor: "#ffffff" }}
                         >
                             <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0">
                                 <img
@@ -91,17 +100,29 @@ export default function RoyalPicks() {
                                             style={{ backgroundColor: item.isVeg ? "#16a34a" : "#dc2626" }}
                                         />
                                     </span>
-                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                                    <span
+                                        className="text-[10px] font-bold uppercase tracking-widest"
+                                        style={{ color: item.isVeg ? "#16a34a" : "#dc2626" }}
+                                    >
                                         {item.isVeg ? "Veg" : "Non-Veg"}
                                     </span>
                                 </div>
-                                <h6 className="font-extrabold text-slate-900 dark:text-white text-sm leading-tight mb-1">
+                                <h6
+                                    className="font-extrabold text-sm leading-tight mb-1"
+                                    style={{ color: "#111827" }}
+                                >
                                     {item.name}
                                 </h6>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-2">
+                                <p
+                                    className="text-xs font-medium mb-2"
+                                    style={{ color: "#6b7280" }}
+                                >
                                     The Biryani Canteen
                                 </p>
-                                <span className="font-black text-[#002366] dark:text-primary text-sm">
+                                <span
+                                    className="font-black text-sm"
+                                    style={{ color: "#002366" }}
+                                >
                                     ₹{item.price}
                                 </span>
                             </div>
