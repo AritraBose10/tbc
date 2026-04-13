@@ -12,6 +12,9 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "The Biryani Canteen",
   description: "Royal Indian Cuisine - Mobile First Ordering App",
+  icons: {
+    icon: "/image.png",
+  },
 };
 
 export default function RootLayout({
