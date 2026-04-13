@@ -54,25 +54,25 @@ export default function RoyalPicks() {
         <section className="px-5 pb-6 overflow-hidden">
             <motion.div className="flex items-center justify-between mb-5">
                 <div>
-                    <h3 className="text-slate-900 dark:text-slate-100 text-lg font-black tracking-tight">
+                    <h3 className="text-[#002366] dark:text-white text-xl font-extrabold tracking-tight">
                         Recommended for you
                     </h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Curated selections from our menu</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-0.5">Curated selections from our menu</p>
                 </div>
             </motion.div>
 
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
                 {picks.map((item) => (
                     <motion.div
                         key={item.id}
-                        whileHover={{ scale: 1.02 }}
+                        whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.98 }}
                     >
                         <Link
                             href={`/dish/${item.id}`}
-                            className="group flex gap-4 bg-transparent transition-all duration-300"
+                            className="group flex gap-4 bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-300 hover:shadow-md"
                         >
-                            <div className="relative w-32 h-28 rounded-2xl overflow-hidden shrink-0 shadow-sm">
+                            <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0">
                                 <img
                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                     alt={item.name}
@@ -83,7 +83,7 @@ export default function RoyalPicks() {
                             <div className="flex-1 flex flex-col justify-center py-1">
                                 <div className="flex items-center gap-2 mb-1">
                                     <span
-                                        className="w-3 h-3 border flex items-center justify-center p-[2px]"
+                                        className="w-3 h-3 border flex-shrink-0 flex items-center justify-center p-[2px]"
                                         style={{ borderColor: item.isVeg ? "#16a34a" : "#dc2626" }}
                                     >
                                         <div
@@ -91,14 +91,14 @@ export default function RoyalPicks() {
                                             style={{ backgroundColor: item.isVeg ? "#16a34a" : "#dc2626" }}
                                         />
                                     </span>
-                                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest">
+                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                                         {item.isVeg ? "Veg" : "Non-Veg"}
                                     </span>
                                 </div>
-                                <h6 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight mb-1">
+                                <h6 className="font-extrabold text-slate-900 dark:text-white text-sm leading-tight mb-1">
                                     {item.name}
                                 </h6>
-                                <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold mb-2">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-2">
                                     The Biryani Canteen
                                 </p>
                                 <span className="font-black text-[#002366] dark:text-primary text-sm">
