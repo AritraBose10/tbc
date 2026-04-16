@@ -38,20 +38,19 @@ export async function POST(req: NextRequest) {
       body = await req.json();
     }
 
-    // STEP 1 — Store restID (hardcoded, confirmed by Petpooja) and restaurantId
+    // STEP 1 — Store restID (hardcoded, confirmed by Petpooja) and restaurantId.
+    // Sequential writes — SQLite allows only one concurrent writer.
     const restaurantId = body.restaurants?.[0]?.restaurantid ?? '';
-    await Promise.all([
-      prisma.petpoojaConfig.upsert({
-        where:  { key: 'restID' },
-        update: { value: 'A409632R' },
-        create: { key: 'restID', value: 'A409632R' },
-      }),
-      prisma.petpoojaConfig.upsert({
-        where:  { key: 'restaurantId' },
-        update: { value: restaurantId },
-        create: { key: 'restaurantId', value: restaurantId },
-      }),
-    ]);
+    await prisma.petpoojaConfig.upsert({
+      where:  { key: 'restID' },
+      update: { value: 'A409632R' },
+      create: { key: 'restID', value: 'A409632R' },
+    });
+    await prisma.petpoojaConfig.upsert({
+      where:  { key: 'restaurantId' },
+      update: { value: restaurantId },
+      create: { key: 'restaurantId', value: restaurantId },
+    });
     console.log(`[pushmenu] restID=A409632R restaurantId=${restaurantId}`);
 
     // STEP 2 — Upsert items from body.items[]

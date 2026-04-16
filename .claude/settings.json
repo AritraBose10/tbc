@@ -11,7 +11,8 @@
       "Bash(node -e ' *)",
       "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db ' *)",
       "Bash(ls -la /Users/aritrabose/Desktop/tbc/*.db)",
-      "Bash(ls -la /Users/aritrabose/Desktop/tbc/prisma/*.db)"
+      "Bash(ls -la /Users/aritrabose/Desktop/tbc/prisma/*.db)",
+      "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \"SELECT key, value FROM PetpoojaConfig;\")"
     ]
   }
 }
