@@ -59,6 +59,8 @@ export interface PetpoojaTaxDetail {
 export interface PetpoojaOrderDetails {
   /** Must come from the stored value set by Push Menu webhook — never hardcode */
   restID: string;
+  /** Static mapping code assigned by Petpooja — stored in PETPOOJA_REST_MAP_ID env var */
+  restMapID: string;
   orderID: string;
   /** "DD/MM/YYYY" for pre-orders; "" for immediate */
   preorder_date: string;

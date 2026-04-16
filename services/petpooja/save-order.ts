@@ -115,10 +115,13 @@ export async function saveOrder(
 
   const auth = getPetpoojaAuth();
 
+  const restMapID = process.env.PETPOOJA_REST_MAP_ID ?? 'sikue9cb';
+
   const body: SaveOrderRequest = {
     ...auth,
     details: {
       restID: configRow.value,
+      restMapID,
       orderID: input.orderID,
       preorder_date: input.preorderDate ?? '',
       preorder_time: input.preorderTime ?? '',
