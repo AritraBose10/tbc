@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
 
     console.log(`[pushmenu] items=${itemCount} taxes=${taxCount}`);
   } catch (err) {
-    // STEP 5 — Log but never return 4xx/5xx; Petpooja would retry indefinitely
+    // Log but never return 4xx/5xx — Petpooja would retry indefinitely
     console.error('[pushmenu] Error processing payload:', err);
   }
 

@@ -13,7 +13,10 @@
       "Bash(ls -la /Users/aritrabose/Desktop/tbc/*.db)",
       "Bash(ls -la /Users/aritrabose/Desktop/tbc/prisma/*.db)",
       "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \"SELECT key, value FROM PetpoojaConfig;\")",
-      "Bash(grep -l \"pushmenu\\\\|petpoojaConfig\\\\|restaurantId\" /Users/aritrabose/Desktop/tbc/.next/server/chunks/*.js)"
+      "Bash(grep -l \"pushmenu\\\\|petpoojaConfig\\\\|restaurantId\" /Users/aritrabose/Desktop/tbc/.next/server/chunks/*.js)",
+      "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \"SELECT COUNT\\(*\\) as Items FROM MenuItem; SELECT COUNT\\(*\\) as Addons FROM MenuAddon; SELECT COUNT\\(*\\) as Variants FROM MenuVariant; SELECT COUNT\\(*\\) as Taxes FROM TaxConfig; SELECT key, value FROM PetpoojaConfig;\")",
+      "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \"SELECT key,value FROM PetpoojaConfig; SELECT COUNT\\(*\\) FROM MenuItem; SELECT COUNT\\(*\\) FROM TaxConfig;\")",
+      "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \".schema\")"
     ]
   }
 }
