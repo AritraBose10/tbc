@@ -49,15 +49,18 @@ export async function POST(req: NextRequest) {
   }
 
   // --- Persist restID -------------------------------------------------------
-  // This is the single most critical piece of data from this webhook.
-  // All Save Order calls require the exact value Petpooja gives us here.
+  // The order-relay restID is A409632R (extracted from the restaurant name
+  // "BIRYANI CANTEEN (409632) DEMO" → A{number}R format).
+  // restaurant.restaurant_id in the payload is the integration mapping code
+  // (sikue9cb), NOT the restID used for Save Order calls.
+  const restID = 'A409632R';
   await prisma.petpoojaConfig.upsert({
     where: { key: 'restID' },
-    update: { value: restaurant.restaurant_id },
-    create: { key: 'restID', value: restaurant.restaurant_id },
+    update: { value: restID },
+    create: { key: 'restID', value: restID },
   });
 
-  console.log(`[pushmenu] restID persisted: ${restaurant.restaurant_id}`);
+  console.log(`[pushmenu] restID persisted: ${restID}`);
 
   // --- Persist menu items ---------------------------------------------------
   // Flatten categories → items and upsert each one.
