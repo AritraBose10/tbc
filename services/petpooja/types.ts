@@ -113,58 +113,65 @@ export interface SaveOrderResponse {
 
 // --- Push Menu Webhook (Inbound) -------------------------------------------
 
-export interface PetpoojaItemVariant {
-  id: string;
+// --- Push Menu Webhook (Inbound) -------------------------------------------
+// Payload structure matches Petpooja Integration Guide (confirmed field names).
+
+export interface PushMenuVariation {
+  id: string;       // variation.id — NOT variationid
   name: string;
   price: string;
 }
 
-export interface PetpoojaItemAddon {
-  id: string;
-  name: string;
-  price: string;
+/** Reference from an item to an addon group it belongs to */
+export interface PushMenuAddonRef {
+  addon_group_id: string;
 }
 
-/** Tax entry at the restaurant level — Petpooja sends these in the taxes array */
-export interface PetpoojaTax {
-  id: string;
-  title: string;
-  /** "percentage" or "flat" */
-  type: string;
-  percentage: string;
-}
-
-export interface PetpoojaMenuItem {
+export interface PushMenuItem {
   itemid: string;
   itemname: string;
-  item_price: string;
-  /** "1" = active/available, "0" = inactive */
-  active: string;
-  item_tax: string;
-  itemallowvariant: string;
-  itemvariants?: PetpoojaItemVariant[];
-  item_addons?: PetpoojaItemAddon[];
-  [key: string]: unknown; // Petpooja includes many additional fields
+  price: string;
+  item_categoryid: string;
+  /** "1" = variants enabled */
+  itemallowvariation: string;
+  /** "1" = addons enabled */
+  itemallowaddon: string;
+  variation?: PushMenuVariation[];
+  addon?: PushMenuAddonRef[];
+  [key: string]: unknown;
 }
 
-export interface PetpoojaMenuCategory {
-  categoryid: string;
-  categoryname: string;
-  /** "1" = active, "0" = inactive */
-  active: string;
-  items: PetpoojaMenuItem[];
+export interface PushMenuAddonItem {
+  addonitemid: string;
+  addonitem_name: string;
+  addonitem_price: string;
 }
 
-export interface PetpoojaRestaurant {
-  restaurant_id: string;
-  restaurantname: string;
-  categories: PetpoojaMenuCategory[];
-  taxes?: PetpoojaTax[];
+export interface PushMenuAddonGroup {
+  addongroupid: string;
+  addongroupitems: PushMenuAddonItem[];
+}
+
+/** Tax entry from body.taxes[] */
+export interface PushMenuTax {
+  taxid: string;
+  taxname: string;
+  /** Tax rate as a string, e.g. "5.00" */
+  tax: string;
+}
+
+export interface PushMenuRestaurant {
+  /** Petpooja's numeric restaurant ID, e.g. "4341" */
+  restaurantid: string;
+  restaurantname?: string;
   [key: string]: unknown;
 }
 
 export interface PushMenuPayload extends PetpoojaAuth {
-  restaurants: PetpoojaRestaurant[];
+  restaurants: PushMenuRestaurant[];
+  items: PushMenuItem[];
+  addongroups: PushMenuAddonGroup[];
+  taxes: PushMenuTax[];
 }
 
 // --- Item On/Off Webhook (Inbound) -----------------------------------------

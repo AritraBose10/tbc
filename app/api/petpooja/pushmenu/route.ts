@@ -3,157 +3,149 @@
 // ---------------------------------------------------------------------------
 // Petpooja calls this whenever the restaurant saves their POS menu.
 // We must:
-//   1. Extract and persist restID — required for every subsequent Save Order call
-//   2. Upsert all item IDs and prices — Save Order items must use Petpooja IDs,
-//      not our internal catalogue IDs
+//   1. Persist restID + restaurantId — required for every subsequent Save Order call
+//   2. Upsert all items, variants, addons, and taxes from the flat payload
 //
 // Petpooja retries if we respond with anything other than HTTP 200 +
-// { "status": "1" }, so we validate before writing and always return that shape.
+// { "status": "1" }, so we ALWAYS return that shape — even on errors.
 // ---------------------------------------------------------------------------
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import type { PushMenuPayload } from '@/services/petpooja/types';
+import type {
+  PushMenuPayload,
+  PushMenuItem,
+  PushMenuAddonGroup,
+} from '@/services/petpooja/types';
+
+const SUCCESS = { status: '1', message: 'success' } as const;
 
 export async function POST(req: NextRequest) {
-  let body: PushMenuPayload;
-
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json(
-      { status: '0', message: 'Invalid JSON body' },
-      { status: 400 },
-    );
-  }
+    const body: PushMenuPayload = await req.json();
 
-  if (
-    !body.restaurants ||
-    !Array.isArray(body.restaurants) ||
-    body.restaurants.length === 0
-  ) {
-    return NextResponse.json(
-      { status: '0', message: 'Missing or empty restaurants array' },
-      { status: 400 },
-    );
-  }
+    // STEP 1 — Store restID (hardcoded, confirmed by Petpooja) and restaurantId
+    const restaurantId = body.restaurants?.[0]?.restaurantid ?? '';
+    await Promise.all([
+      prisma.petpoojaConfig.upsert({
+        where:  { key: 'restID' },
+        update: { value: 'A409632R' },
+        create: { key: 'restID', value: 'A409632R' },
+      }),
+      prisma.petpoojaConfig.upsert({
+        where:  { key: 'restaurantId' },
+        update: { value: restaurantId },
+        create: { key: 'restaurantId', value: restaurantId },
+      }),
+    ]);
+    console.log(`[pushmenu] restID=A409632R restaurantId=${restaurantId}`);
 
-  // Petpooja sends one restaurant per Push Menu call in practice
-  const restaurant = body.restaurants[0];
+    // STEP 2 — Upsert items from body.items[]
+    const items: PushMenuItem[] = body.items ?? [];
+    let itemCount = 0;
 
-  if (!restaurant.restaurant_id) {
-    return NextResponse.json(
-      { status: '0', message: 'Missing restaurant_id' },
-      { status: 400 },
-    );
-  }
-
-  // --- Persist restID -------------------------------------------------------
-  // The order-relay restID is A409632R (extracted from the restaurant name
-  // "BIRYANI CANTEEN (409632) DEMO" → A{number}R format).
-  // restaurant.restaurant_id in the payload is the integration mapping code
-  // (sikue9cb), NOT the restID used for Save Order calls.
-  const restID = 'A409632R';
-  await prisma.petpoojaConfig.upsert({
-    where: { key: 'restID' },
-    update: { value: restID },
-    create: { key: 'restID', value: restID },
-  });
-
-  console.log(`[pushmenu] restID persisted: ${restID}`);
-
-  // --- Persist menu items ---------------------------------------------------
-  // Flatten categories → items and upsert each one.
-  // We keep the full rawJson so nothing is silently discarded when the
-  // Petpooja schema adds fields in future.
-  let itemCount = 0;
-
-  for (const category of restaurant.categories ?? []) {
-    for (const item of category.items ?? []) {
-      // Skip malformed entries rather than aborting the entire webhook
+    for (const item of items) {
       if (!item.itemid) {
         console.warn('[pushmenu] Skipping item with missing itemid', item);
         continue;
       }
 
+      const hasVariants = item.itemallowvariation === '1';
+
       await prisma.menuItem.upsert({
-        where: { petpoojaId: item.itemid },
+        where:  { petpoojaId: item.itemid },
         update: {
-          name: item.itemname,
-          price: parseFloat(item.item_price) || 0,
-          isAvailable: item.active !== '0',
-          categoryId: category.categoryid,
-          categoryName: category.categoryname,
-          rawJson: JSON.stringify(item),
+          name:       item.itemname,
+          price:      parseFloat(item.price) || 0,
+          categoryId: item.item_categoryid ?? '',
+          rawJson:    JSON.stringify(item),
         },
         create: {
-          petpoojaId: item.itemid,
-          name: item.itemname,
-          price: parseFloat(item.item_price) || 0,
-          isAvailable: item.active !== '0',
-          categoryId: category.categoryid,
-          categoryName: category.categoryname,
-          rawJson: JSON.stringify(item),
+          petpoojaId:  item.itemid,
+          name:        item.itemname,
+          price:       parseFloat(item.price) || 0,
+          categoryId:  item.item_categoryid ?? '',
+          rawJson:     JSON.stringify(item),
         },
       });
 
-      // --- Persist variants -----------------------------------------------
-      for (const variant of item.itemvariants ?? []) {
-        if (!variant.id) continue;
-        await prisma.menuVariant.upsert({
-          where: { petpoojaId: variant.id },
-          update: { name: variant.name, price: parseFloat(variant.price) || 0 },
-          create: {
-            petpoojaId: variant.id,
-            name: variant.name,
-            price: parseFloat(variant.price) || 0,
-            itemPetpoojaId: item.itemid,
-          },
-        });
-      }
-
-      // --- Persist addons -------------------------------------------------
-      for (const addon of item.item_addons ?? []) {
-        if (!addon.id) continue;
-        await prisma.menuAddon.upsert({
-          where: { petpoojaId: addon.id },
-          update: { name: addon.name, price: parseFloat(addon.price) || 0 },
-          create: {
-            petpoojaId: addon.id,
-            name: addon.name,
-            price: parseFloat(addon.price) || 0,
-            itemPetpoojaId: item.itemid,
-          },
-        });
+      // Variants — only when itemallowvariation === "1"
+      if (hasVariants) {
+        for (const variation of item.variation ?? []) {
+          if (!variation.id) continue;
+          await prisma.menuVariant.upsert({
+            where:  { petpoojaId: variation.id },
+            update: { name: variation.name, price: parseFloat(variation.price) || 0 },
+            create: {
+              petpoojaId:     variation.id,
+              name:           variation.name,
+              price:          parseFloat(variation.price) || 0,
+              itemPetpoojaId: item.itemid,
+            },
+          });
+        }
       }
 
       itemCount++;
     }
+
+    // STEP 3 — Upsert addons from body.addongroups[], linked via item.addon[].addon_group_id
+    const addonGroups: PushMenuAddonGroup[] = body.addongroups ?? [];
+
+    // Build groupid → addonitems map for O(1) lookup
+    const groupMap = new Map<string, PushMenuAddonGroup['addongroupitems']>();
+    for (const group of addonGroups) {
+      groupMap.set(group.addongroupid, group.addongroupitems ?? []);
+    }
+
+    for (const item of items) {
+      if (!item.itemid || item.itemallowaddon !== '1') continue;
+      for (const addonRef of item.addon ?? []) {
+        const groupItems = groupMap.get(addonRef.addon_group_id) ?? [];
+        for (const addonItem of groupItems) {
+          if (!addonItem.addonitemid) continue;
+          await prisma.menuAddon.upsert({
+            where:  { petpoojaId: addonItem.addonitemid },
+            update: {
+              name:  addonItem.addonitem_name,
+              price: parseFloat(addonItem.addonitem_price) || 0,
+            },
+            create: {
+              petpoojaId:     addonItem.addonitemid,
+              name:           addonItem.addonitem_name,
+              price:          parseFloat(addonItem.addonitem_price) || 0,
+              itemPetpoojaId: item.itemid,
+            },
+          });
+        }
+      }
+    }
+
+    // STEP 4 — Upsert taxes from body.taxes[]
+    let taxCount = 0;
+    for (const tax of body.taxes ?? []) {
+      if (!tax.taxid) continue;
+      await prisma.taxConfig.upsert({
+        where:  { petpoojaId: tax.taxid },
+        update: {
+          title:      tax.taxname,
+          percentage: parseFloat(tax.tax) || 0,
+        },
+        create: {
+          petpoojaId:  tax.taxid,
+          title:       tax.taxname,
+          type:        '',
+          percentage:  parseFloat(tax.tax) || 0,
+        },
+      });
+      taxCount++;
+    }
+
+    console.log(`[pushmenu] items=${itemCount} taxes=${taxCount}`);
+  } catch (err) {
+    // STEP 5 — Log but never return 4xx/5xx; Petpooja would retry indefinitely
+    console.error('[pushmenu] Error processing payload:', err);
   }
 
-  // --- Persist tax configs --------------------------------------------------
-  // Taxes are declared at restaurant level; upsert each unique entry.
-  let taxCount = 0;
-  for (const tax of restaurant.taxes ?? []) {
-    if (!tax.id) continue;
-    await prisma.taxConfig.upsert({
-      where: { petpoojaId: tax.id },
-      update: {
-        title: tax.title,
-        type: tax.type,
-        percentage: parseFloat(tax.percentage) || 0,
-      },
-      create: {
-        petpoojaId: tax.id,
-        title: tax.title,
-        type: tax.type,
-        percentage: parseFloat(tax.percentage) || 0,
-      },
-    });
-    taxCount++;
-  }
-
-  console.log(`[pushmenu] ${itemCount} item(s) upserted, ${taxCount} tax config(s) upserted`);
-
-  return NextResponse.json({ status: '1', message: 'Menu received' });
+  return NextResponse.json(SUCCESS);
 }
