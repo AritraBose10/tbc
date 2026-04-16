@@ -111,58 +111,61 @@ async function step1_pushMenu() {
   console.log('STEP 1: Push Menu → verify restID stored');
   console.log('══════════════════════════════════════');
 
+  // Payload structure matches the actual Petpooja Push Menu wire format:
+  //   • items[]        — flat array at top level (not nested under restaurants)
+  //   • itemallowvariation / variation[]  — correct variant field names
+  //   • addongroups[]  — top-level addon groups; items reference via addon[].addon_group_id
+  //   • taxes[]        — top-level tax array with taxid/taxname/tax fields
   const payload = {
     ...auth,
-    restaurants: [
+    restaurants: [{ restaurantid: SANDBOX_REST_ID, restaurantname: 'The Biryani Canteen (Sandbox)' }],
+    items: [
       {
-        restaurant_id: SANDBOX_REST_ID,
-        restaurantname: 'The Biryani Canteen (Sandbox)',
-        categories: [
-          {
-            categoryid: 'cat-001',
-            categoryname: 'Biryani',
-            active: '1',
-            items: [
-              {
-                itemid: 'item-test-001',
-                itemname: 'Chicken Biryani',
-                item_price: '180',
-                active: '1',
-                item_tax: '9',
-                itemallowvariant: '0',
-              },
-              {
-                itemid: 'item-test-002',
-                itemname: 'Veg Biryani',
-                item_price: '150',
-                active: '1',
-                item_tax: '9',
-                itemallowvariant: '0',
-              },
-              // Rich item — used in Step 5 (variant + addon + tax)
-              {
-                itemid: 'item-test-003',
-                itemname: 'Special Biryani',
-                item_price: '200',
-                active: '1',
-                item_tax: '9',
-                itemallowvariant: '1',
-                itemvariants: [
-                  { id: 'variant-test-001', name: 'Full Plate', price: '200' },
-                  { id: 'variant-test-002', name: 'Half Plate', price: '120' },
-                ],
-                item_addons: [
-                  { id: 'addon-test-001', name: 'Extra Raita', price: '30' },
-                  { id: 'addon-test-002', name: 'Extra Papad', price: '15' },
-                ],
-              },
-            ],
-          },
+        itemid: 'item-test-001',
+        itemname: 'Chicken Biryani',
+        price: '180.00',
+        item_categoryid: 'cat-001',
+        itemallowvariation: '0',
+        itemallowaddon: '0',
+        variation: [],
+        addon: [],
+      },
+      {
+        itemid: 'item-test-002',
+        itemname: 'Veg Biryani',
+        price: '150.00',
+        item_categoryid: 'cat-001',
+        itemallowvariation: '0',
+        itemallowaddon: '0',
+        variation: [],
+        addon: [],
+      },
+      // Rich item — used in Step 5 (variant + addon + tax)
+      {
+        itemid: 'item-test-003',
+        itemname: 'Special Biryani',
+        price: '200.00',
+        item_categoryid: 'cat-001',
+        itemallowvariation: '1',
+        itemallowaddon: '1',
+        variation: [
+          { id: 'variant-test-001', name: 'Full Plate', price: '200' },
+          { id: 'variant-test-002', name: 'Half Plate', price: '120' },
         ],
-        taxes: [
-          { id: 'tax-test-001', title: 'GST', type: 'percentage', percentage: '9' },
+        addon: [{ addon_group_id: 'addongrp-001' }],
+      },
+    ],
+    addongroups: [
+      {
+        addongroupid: 'addongrp-001',
+        addongroupitems: [
+          { addonitemid: 'addon-test-001', addonitem_name: 'Extra Raita',  addonitem_price: '30' },
+          { addonitemid: 'addon-test-002', addonitem_name: 'Extra Papad',  addonitem_price: '15' },
         ],
       },
+    ],
+    taxes: [
+      { taxid: 'tax-test-001', taxname: 'GST', tax: '9.00' },
     ],
   };
 
@@ -406,22 +409,11 @@ async function step5_addonVariantTax(
   console.log(`  petpooja    : ${PETPOOJA_URL}`);
   console.log(`  order_id    : ${TEST_ORDER_ID}`);
 
-  // ── DB guard ──────────────────────────────────────────────────────────────
-  // Steps 2–5 use real Petpooja item IDs queried from the DB.
-  // The DB must be populated by the Push Menu trigger before this test runs.
-  const existingCount = await prisma.menuItem.count();
-  if (existingCount === 0) {
-    console.error(`
-❌ No menu items in DB. Run the Push Menu trigger first:
-   1. Go to https://developerapi.petpooja.com
-   2. Menu Management → Menu List → click "Menu Trigger"
-   3. Confirm POST received at /api/petpooja/pushmenu
-   4. Then re-run: npm run sandbox:test
-`);
-    await prisma.$disconnect();
-    process.exit(1);
-  }
-
+  // ── Step 1: Push Menu (seeds local DB with test items) ───────────────────
+  // step1_pushMenu POSTs synthetic items to our local route, which writes them
+  // to the DB.  We run this first so subsequent steps always have items to work
+  // with regardless of whether the Petpooja portal webhook has been triggered
+  // (that fires to the production URL, not to localhost).
   await step1_pushMenu();
 
   // ── Query DB for real item IDs ────────────────────────────────────────────
