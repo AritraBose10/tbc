@@ -26,8 +26,13 @@
 // ---------------------------------------------------------------------------
 
 import { PrismaClient } from '@prisma/client';
+import path from 'path';
 
-const prisma = new PrismaClient();
+// Resolve the DB path explicitly so it matches lib/prisma.ts — avoids the
+// SQLite relative-path ambiguity when DATABASE_URL is already in process.env.
+const prisma = new PrismaClient({
+  datasources: { db: { url: `file:${path.join(process.cwd(), 'prisma', 'petpooja.db')}` } },
+});
 
 // Since next.config.ts sets basePath: "/order", all routes live under /order
 const SERVER = 'http://localhost:3000/order';
