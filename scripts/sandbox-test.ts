@@ -1,3 +1,12 @@
+/**
+ * PRE-REQUISITE before running this script:
+ * 1. Go to https://developerapi.petpooja.com
+ * 2. Menu Management → Menu List → click "Menu Trigger"
+ * 3. Confirm server received POST to /order/api/petpooja/pushmenu
+ * 4. Verify DB has rows: npx prisma studio
+ * Then run: npm run sandbox:test
+ */
+
 // ---------------------------------------------------------------------------
 // Petpooja Sandbox Test Script  (Task 4)
 // ---------------------------------------------------------------------------
@@ -10,16 +19,22 @@
 //   1. npm run dev is running on port 3000
 //   2. Database is migrated: npx prisma db push
 //   3. .env.sandbox is populated with sandbox credentials
+//   4. Push Menu has been triggered from developerapi.petpooja.com
+//      (so real Petpooja item IDs are in the DB)
 //
 // Requires Node.js >= 20.6.0 (for --env-file flag).
 // ---------------------------------------------------------------------------
 
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
 // Since next.config.ts sets basePath: "/order", all routes live under /order
 const SERVER = 'http://localhost:3000/order';
 
-// Petpooja sandbox base URL — used for the outbound Save Order call in Step 2
+// Petpooja sandbox base URL — used for the outbound Save Order calls in Steps 2 & 5
 const PETPOOJA_URL =
-  process.env.PETPOOJA_BASE_URL ??
+  process.env.PETPOOJA_API_BASE ??
   'https://qle1yy2ydc.execute-api.ap-southeast-1.amazonaws.com/V1';
 
 // ---------------------------------------------------------------------------
@@ -79,7 +94,6 @@ if (!auth.app_key || !auth.app_secret || !auth.access_token) {
 }
 
 const SANDBOX_REST_ID = process.env.PETPOOJA_REST_ID ?? 'sandbox-rest-001';
-const TEST_ITEM_ID = 'item-test-001';
 // Unique per run so repeated runs don't collide in the DB
 const TEST_ORDER_ID = `tbc-sandbox-${Date.now()}`;
 
@@ -104,7 +118,7 @@ async function step1_pushMenu() {
             active: '1',
             items: [
               {
-                itemid: TEST_ITEM_ID,
+                itemid: 'item-test-001',
                 itemname: 'Chicken Biryani',
                 item_price: '180',
                 active: '1',
@@ -119,8 +133,28 @@ async function step1_pushMenu() {
                 item_tax: '9',
                 itemallowvariant: '0',
               },
+              // Rich item — used in Step 5 (variant + addon + tax)
+              {
+                itemid: 'item-test-003',
+                itemname: 'Special Biryani',
+                item_price: '200',
+                active: '1',
+                item_tax: '9',
+                itemallowvariant: '1',
+                itemvariants: [
+                  { id: 'variant-test-001', name: 'Full Plate', price: '200' },
+                  { id: 'variant-test-002', name: 'Half Plate', price: '120' },
+                ],
+                item_addons: [
+                  { id: 'addon-test-001', name: 'Extra Raita', price: '30' },
+                  { id: 'addon-test-002', name: 'Extra Papad', price: '15' },
+                ],
+              },
             ],
           },
+        ],
+        taxes: [
+          { id: 'tax-test-001', title: 'GST', type: 'percentage', percentage: '9' },
         ],
       },
     ],
@@ -128,19 +162,26 @@ async function step1_pushMenu() {
 
   const res = await post(`${SERVER}/api/petpooja/pushmenu`, payload);
   assert(res.status === '1', `Push Menu responds status=1 (got ${res.status})`);
-  console.log(`  restID "${SANDBOX_REST_ID}" and 2 items should now be in DB`);
+  console.log(`  restID "${SANDBOX_REST_ID}" and items should now be in DB`);
 }
 
 // ---------------------------------------------------------------------------
-// Step 2 — Save Order → log Petpooja's sandbox response
+// Step 2 — Save Order (plain item + tax) → log Petpooja's sandbox response
 // ---------------------------------------------------------------------------
-async function step2_saveOrder() {
+async function step2_saveOrder(
+  item: { petpoojaId: string; name: string; price: number },
+  taxPct: number,
+) {
   console.log('\n══════════════════════════════════════');
-  console.log('STEP 2: Save Order → call Petpooja sandbox directly');
+  console.log('STEP 2: Save Order (plain item + tax) → call Petpooja sandbox directly');
   console.log('══════════════════════════════════════');
+  console.log(`  item: ${item.petpoojaId}  price: ${item.price}  tax: ${taxPct}%`);
 
   const CALLBACK_URL =
     process.env.PETPOOJA_CALLBACK_URL ?? `${SERVER}/api/petpooja/callback`;
+
+  const taxAmount  = parseFloat((item.price * taxPct / 100).toFixed(2));
+  const orderTotal = parseFloat((item.price + taxAmount).toFixed(2));
 
   const payload = {
     ...auth,
@@ -151,9 +192,8 @@ async function step2_saveOrder() {
       preorder_time: '',
       advanced_order: 'N',
       order_type: 'H',
-      // total = item.final_price (180) + GST (16.20) — NO delivery charges
-      total: 196.2,
-      tax_total: 16.2,
+      total: orderTotal,
+      tax_total: taxAmount,
       discount_total: 0,
       discount_type: '1',
       created_on: Math.floor(Date.now() / 1000),
@@ -170,15 +210,15 @@ async function step2_saveOrder() {
       callback_url: CALLBACK_URL,
       items: [
         {
-          id: TEST_ITEM_ID,
-          name: 'Chicken Biryani',
-          price: 180,
-          final_price: 180,
+          id: item.petpoojaId,
+          name: item.name,
+          price: item.price,
+          final_price: item.price,
           quantity: 1,
           gst_liability: 'restaurant',
-          item_tax: 16.2,
+          item_tax: taxAmount,
           tax_inclusive: 0,
-          tax_percentage: 9,
+          tax_percentage: taxPct,
           addons: [],
         },
       ],
@@ -187,9 +227,9 @@ async function step2_saveOrder() {
           id: '1',
           title: 'GST',
           type: 'percentage',
-          price: 9,
-          tax: 16.2,
-          restaurant_liable_amt: 16.2,
+          price: taxPct,
+          tax: taxAmount,
+          restaurant_liable_amt: taxAmount,
         },
       ],
     },
@@ -227,16 +267,17 @@ async function step3_callback() {
 // ---------------------------------------------------------------------------
 // Step 4 — Item toggle off then on → verify isAvailable flips
 // ---------------------------------------------------------------------------
-async function step4_itemToggle() {
+async function step4_itemToggle(petpoojaId: string) {
   console.log('\n══════════════════════════════════════');
   console.log('STEP 4: Item Toggle (off → on)');
   console.log('══════════════════════════════════════');
+  console.log(`  item: ${petpoojaId}`);
 
   // Turn item OFF
   const offRes = await post(`${SERVER}/api/petpooja/item-status`, {
     ...auth,
     restaurant_id: SANDBOX_REST_ID,
-    item_id: TEST_ITEM_ID,
+    item_id: petpoojaId,
     active: '0',
   });
   assert(offRes.status === '1', `Item turn-off responds status=1 (got ${offRes.status})`);
@@ -245,12 +286,105 @@ async function step4_itemToggle() {
   const onRes = await post(`${SERVER}/api/petpooja/item-status`, {
     ...auth,
     restaurant_id: SANDBOX_REST_ID,
-    item_id: TEST_ITEM_ID,
+    item_id: petpoojaId,
     active: '1',
   });
   assert(onRes.status === '1', `Item turn-on responds status=1 (got ${onRes.status})`);
 
-  console.log(`  MenuItem "${TEST_ITEM_ID}" isAvailable should now be true`);
+  console.log(`  MenuItem "${petpoojaId}" isAvailable should now be true`);
+}
+
+// ---------------------------------------------------------------------------
+// Step 5 — Item with Addon + Variation + Tax → Save Order to Petpooja sandbox
+// ---------------------------------------------------------------------------
+async function step5_addonVariantTax(
+  item: {
+    petpoojaId: string;
+    name: string;
+    variants: { petpoojaId: string; name: string; price: number }[];
+    addons:   { petpoojaId: string; name: string; price: number }[];
+  },
+  tax: { petpoojaId: string; title: string; type: string; percentage: number } | null,
+) {
+  console.log('\n══════════════════════════════════════');
+  console.log('STEP 5: Item with Addon + Variation + Tax');
+  console.log('══════════════════════════════════════');
+
+  const variant = item.variants[0];
+  const addon   = item.addons[0];
+  const taxPct  = tax?.percentage ?? 9;
+
+  console.log(`  item: ${item.petpoojaId}  variant: ${variant.petpoojaId}  addon: ${addon.petpoojaId}  tax: ${taxPct}%`);
+
+  const itemTotal  = variant.price + addon.price;
+  const taxAmount  = parseFloat((itemTotal * taxPct / 100).toFixed(2));
+  const orderTotal = parseFloat((itemTotal + taxAmount).toFixed(2));
+
+  const CALLBACK_URL =
+    process.env.PETPOOJA_CALLBACK_URL ?? `${SERVER}/api/petpooja/callback`;
+
+  const step5OrderId = `${TEST_ORDER_ID}-step5`;
+
+  const payload = {
+    ...auth,
+    details: {
+      restID: SANDBOX_REST_ID,
+      orderID: step5OrderId,
+      preorder_date: '',
+      preorder_time: '',
+      advanced_order: 'N',
+      order_type: 'H',
+      total: orderTotal,
+      tax_total: taxAmount,
+      discount_total: 0,
+      discount_type: '1',
+      created_on: Math.floor(Date.now() / 1000),
+      dc_tax_percentage: 0,
+      pc_tax_percentage: 5,
+      payment_type: 'COD',
+      enable_delivery: 0,
+      name: 'Test Customer',
+      address: '1st Floor, Block A, The Biryani Canteen HQ',
+      mobile: '9000000000',
+      email: 'sandbox@tbc.com',
+      latitude: '',
+      longitude: '',
+      callback_url: CALLBACK_URL,
+      items: [
+        {
+          // Variant ID is sent as the item ID — Petpooja requirement
+          id: variant.petpoojaId,
+          name: `${item.name} — ${variant.name}`,
+          price: itemTotal,
+          final_price: itemTotal,
+          quantity: 1,
+          gst_liability: 'restaurant',
+          item_tax: taxAmount,
+          tax_inclusive: 0,
+          tax_percentage: taxPct,
+          addons: [
+            { id: addon.petpoojaId, name: addon.name, price: addon.price },
+          ],
+        },
+      ],
+      tax_details: [
+        {
+          id: tax?.petpoojaId ?? '1',
+          title: tax?.title ?? 'GST',
+          type: tax?.type ?? 'percentage',
+          price: taxPct,
+          tax: taxAmount,
+          restaurant_liable_amt: taxAmount,
+        },
+      ],
+    },
+  };
+
+  await post(`${PETPOOJA_URL}/save_order`, payload);
+  console.log(
+    '  ↑ Review Petpooja response above (variant.id as item.id, addon included, tax applied).',
+  );
+  console.log(`  variant_price=${variant.price}  addon_price=${addon.price}  tax=${taxAmount}  total=${orderTotal}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -264,10 +398,52 @@ async function step4_itemToggle() {
   console.log(`  petpooja    : ${PETPOOJA_URL}`);
   console.log(`  order_id    : ${TEST_ORDER_ID}`);
 
+  // ── DB guard ──────────────────────────────────────────────────────────────
+  // Steps 2–5 use real Petpooja item IDs queried from the DB.
+  // The DB must be populated by the Push Menu trigger before this test runs.
+  const existingCount = await prisma.menuItem.count();
+  if (existingCount === 0) {
+    console.error(`
+❌ No menu items in DB. Run the Push Menu trigger first:
+   1. Go to https://developerapi.petpooja.com
+   2. Menu Management → Menu List → click "Menu Trigger"
+   3. Confirm POST received at /api/petpooja/pushmenu
+   4. Then re-run: npm run sandbox:test
+`);
+    await prisma.$disconnect();
+    process.exit(1);
+  }
+
   await step1_pushMenu();
-  await step2_saveOrder();
+
+  // ── Query DB for real item IDs ────────────────────────────────────────────
+  // Use items that are now in DB (from the real Push Menu trigger or Step 1).
+  const plainItem = await prisma.menuItem.findFirst({
+    where: { isAvailable: true },
+  });
+
+  const itemWithBoth = await prisma.menuItem.findFirst({
+    where: { isAvailable: true, addons: { some: {} }, variants: { some: {} } },
+    include: { addons: true, variants: true },
+  });
+
+  const taxConfig = await prisma.taxConfig.findFirst();
+  const taxPct    = taxConfig?.percentage ?? 9;
+
+  if (!plainItem) fail('No available MenuItem found in DB after Step 1');
+
+  await step2_saveOrder(plainItem, taxPct);
   await step3_callback();
-  await step4_itemToggle();
+  await step4_itemToggle(plainItem.petpoojaId);
+
+  if (!itemWithBoth || itemWithBoth.variants.length === 0 || itemWithBoth.addons.length === 0) {
+    console.warn('\n⚠️  No item with both variants AND addons found in DB — skipping Step 5.');
+    console.warn('   Trigger the real Push Menu to populate items with variants and addons.');
+  } else {
+    await step5_addonVariantTax(itemWithBoth, taxConfig);
+  }
+
+  await prisma.$disconnect();
 
   console.log('\n══════════════════════════════════════');
   console.log('All steps complete.');

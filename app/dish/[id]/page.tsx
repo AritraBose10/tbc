@@ -8,7 +8,7 @@ import menuData from "@/data/menu_clean.json";
 
 // Build a flat lookup map from all possible ID formats
 function buildDishMap() {
-    const map = new Map<string, { name: string; price: string; isVeg: boolean; category: string; id: string }>();
+    const map = new Map<string, { name: string; price: string; isVeg: boolean; category: string; id: string; image?: string }>();
     Object.entries(menuData).forEach(([category, items]) => {
         (items as { name: string; price: string; isVeg: boolean }[]).forEach((item, index) => {
             const indexId = `${category.replace(/\s+/g, '-')}-${index}`;

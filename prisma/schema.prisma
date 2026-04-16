@@ -20,14 +20,42 @@ model PetpoojaConfig {
 // petpoojaId is the item ID that must be sent back verbatim in Save Order
 // item.id — it is NOT interchangeable with our internal menu IDs.
 model MenuItem {
-  petpoojaId   String   @id          // Petpooja's canonical item ID
+  petpoojaId   String        @id          // Petpooja's canonical item ID
   name         String
   price        Float
-  isAvailable  Boolean  @default(true)
-  categoryId   String   @default("")
-  categoryName String   @default("")
-  rawJson      String                 // Full item JSON blob from Push Menu (for audit / debugging)
-  updatedAt    DateTime @updatedAt
+  isAvailable  Boolean       @default(true)
+  categoryId   String        @default("")
+  categoryName String        @default("")
+  rawJson      String                      // Full item JSON blob from Push Menu (for audit / debugging)
+  updatedAt    DateTime      @updatedAt
+  variants     MenuVariant[]
+  addons       MenuAddon[]
+}
+
+model MenuVariant {
+  id             Int      @id @default(autoincrement())
+  petpoojaId     String   @unique
+  name           String
+  price          Float
+  item           MenuItem @relation(fields: [itemPetpoojaId], references: [petpoojaId])
+  itemPetpoojaId String
+}
+
+model MenuAddon {
+  id             Int      @id @default(autoincrement())
+  petpoojaId     String   @unique
+  name           String
+  price          Float
+  item           MenuItem @relation(fields: [itemPetpoojaId], references: [petpoojaId])
+  itemPetpoojaId String
+}
+
+model TaxConfig {
+  id         Int    @id @default(autoincrement())
+  petpoojaId String @unique
+  title      String
+  type       String
+  percentage Float
 }
 
 // Audit log of every order-status callback received from Petpooja.

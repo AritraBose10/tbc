@@ -12,7 +12,7 @@ import type { PetpoojaErrorPayload } from './types';
 // Sandbox and production share the same URL structure; environment is
 // determined solely by the credentials in .env.local.
 const BASE_URL =
-  process.env.PETPOOJA_BASE_URL ??
+  process.env.PETPOOJA_API_BASE ??
   'https://qle1yy2ydc.execute-api.ap-southeast-1.amazonaws.com/V1';
 
 // ---------------------------------------------------------------------------

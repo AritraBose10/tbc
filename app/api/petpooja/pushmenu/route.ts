@@ -94,11 +94,63 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      // --- Persist variants -----------------------------------------------
+      for (const variant of item.itemvariants ?? []) {
+        if (!variant.id) continue;
+        await prisma.menuVariant.upsert({
+          where: { petpoojaId: variant.id },
+          update: { name: variant.name, price: parseFloat(variant.price) || 0 },
+          create: {
+            petpoojaId: variant.id,
+            name: variant.name,
+            price: parseFloat(variant.price) || 0,
+            itemPetpoojaId: item.itemid,
+          },
+        });
+      }
+
+      // --- Persist addons -------------------------------------------------
+      for (const addon of item.item_addons ?? []) {
+        if (!addon.id) continue;
+        await prisma.menuAddon.upsert({
+          where: { petpoojaId: addon.id },
+          update: { name: addon.name, price: parseFloat(addon.price) || 0 },
+          create: {
+            petpoojaId: addon.id,
+            name: addon.name,
+            price: parseFloat(addon.price) || 0,
+            itemPetpoojaId: item.itemid,
+          },
+        });
+      }
+
       itemCount++;
     }
   }
 
-  console.log(`[pushmenu] ${itemCount} item(s) upserted`);
+  // --- Persist tax configs --------------------------------------------------
+  // Taxes are declared at restaurant level; upsert each unique entry.
+  let taxCount = 0;
+  for (const tax of restaurant.taxes ?? []) {
+    if (!tax.id) continue;
+    await prisma.taxConfig.upsert({
+      where: { petpoojaId: tax.id },
+      update: {
+        title: tax.title,
+        type: tax.type,
+        percentage: parseFloat(tax.percentage) || 0,
+      },
+      create: {
+        petpoojaId: tax.id,
+        title: tax.title,
+        type: tax.type,
+        percentage: parseFloat(tax.percentage) || 0,
+      },
+    });
+    taxCount++;
+  }
+
+  console.log(`[pushmenu] ${itemCount} item(s) upserted, ${taxCount} tax config(s) upserted`);
 
   return NextResponse.json({ status: '1', message: 'Menu received' });
 }

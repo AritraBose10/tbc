@@ -117,6 +117,21 @@ export interface PetpoojaItemVariant {
   price: string;
 }
 
+export interface PetpoojaItemAddon {
+  id: string;
+  name: string;
+  price: string;
+}
+
+/** Tax entry at the restaurant level — Petpooja sends these in the taxes array */
+export interface PetpoojaTax {
+  id: string;
+  title: string;
+  /** "percentage" or "flat" */
+  type: string;
+  percentage: string;
+}
+
 export interface PetpoojaMenuItem {
   itemid: string;
   itemname: string;
@@ -126,6 +141,7 @@ export interface PetpoojaMenuItem {
   item_tax: string;
   itemallowvariant: string;
   itemvariants?: PetpoojaItemVariant[];
+  item_addons?: PetpoojaItemAddon[];
   [key: string]: unknown; // Petpooja includes many additional fields
 }
 
@@ -141,6 +157,7 @@ export interface PetpoojaRestaurant {
   restaurant_id: string;
   restaurantname: string;
   categories: PetpoojaMenuCategory[];
+  taxes?: PetpoojaTax[];
   [key: string]: unknown;
 }
 
