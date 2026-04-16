@@ -2,7 +2,7 @@
  * PRE-REQUISITE before running this script:
  * 1. Go to https://developerapi.petpooja.com
  * 2. Menu Management → Menu List → click "Menu Trigger"
- * 3. Confirm server received POST to /order/api/petpooja/pushmenu
+ * 3. Confirm server received POST to /api/petpooja/pushmenu
  * 4. Verify DB has rows: npx prisma studio
  * Then run: npm run sandbox:test
  */
@@ -35,7 +35,7 @@ const prisma = new PrismaClient({
 });
 
 // Since next.config.ts sets basePath: "/order", all routes live under /order
-const SERVER = 'http://localhost:3000/order';
+const SERVER = 'http://localhost:3000';
 
 // Petpooja sandbox base URL — used for the outbound Save Order calls in Steps 2 & 5
 const PETPOOJA_URL =
