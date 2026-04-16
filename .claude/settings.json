@@ -4,7 +4,11 @@
       "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \".tables\")",
       "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \"SELECT COUNT\\(*\\) FROM MenuItem;\")",
       "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \"SELECT COUNT\\(*\\) FROM PetpoojaConfig;\")",
-      "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \"SELECT COUNT\\(*\\) FROM OrderCallback;\")"
+      "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \"SELECT COUNT\\(*\\) FROM OrderCallback;\")",
+      "Bash(ls /Users/aritrabose/Desktop/tbc/*.db)",
+      "Bash(ls /Users/aritrabose/Desktop/tbc/prisma/*.db)",
+      "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \"SELECT COUNT\\(*\\) FROM PetpoojaConfig; SELECT COUNT\\(*\\) FROM MenuItem; SELECT COUNT\\(*\\) FROM TaxConfig;\")",
+      "Bash(node -e ' *)"
     ]
   }
 }

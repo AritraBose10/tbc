@@ -22,7 +22,21 @@ const SUCCESS = { status: '1', message: 'success' } as const;
 
 export async function POST(req: NextRequest) {
   try {
-    const body: PushMenuPayload = await req.json();
+    // Petpooja sends Push Menu as application/x-www-form-urlencoded where
+    // the entire JSON payload is URL-encoded inside a "data" field.
+    // Fall back to raw JSON for local testing.
+    let body: PushMenuPayload;
+    const contentType = req.headers.get('content-type') ?? '';
+
+    if (contentType.includes('application/x-www-form-urlencoded')) {
+      const text = await req.text();
+      const params = new URLSearchParams(text);
+      const dataParam = params.get('data');
+      if (!dataParam) throw new Error('[pushmenu] form body missing "data" field');
+      body = JSON.parse(dataParam);
+    } else {
+      body = await req.json();
+    }
 
     // STEP 1 — Store restID (hardcoded, confirmed by Petpooja) and restaurantId
     const restaurantId = body.restaurants?.[0]?.restaurantid ?? '';
