@@ -99,6 +99,7 @@ if (!auth.app_key || !auth.app_secret || !auth.access_token) {
 }
 
 const SANDBOX_REST_ID = process.env.PETPOOJA_REST_ID ?? 'sandbox-rest-001';
+const SANDBOX_REST_MAP_ID = process.env.PETPOOJA_REST_MAP_ID ?? 'sikue9cb';
 // Unique per run so repeated runs don't collide in the DB
 const TEST_ORDER_ID = `tbc-sandbox-${Date.now()}`;
 
@@ -192,6 +193,7 @@ async function step2_saveOrder(
     ...auth,
     details: {
       restID: SANDBOX_REST_ID,
+      restMapID: SANDBOX_REST_MAP_ID,
       orderID: TEST_ORDER_ID,
       preorder_date: '',
       preorder_time: '',
@@ -334,6 +336,7 @@ async function step5_addonVariantTax(
     ...auth,
     details: {
       restID: SANDBOX_REST_ID,
+      restMapID: SANDBOX_REST_MAP_ID,
       orderID: step5OrderId,
       preorder_date: '',
       preorder_time: '',
