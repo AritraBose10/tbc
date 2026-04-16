@@ -8,7 +8,10 @@
       "Bash(ls /Users/aritrabose/Desktop/tbc/*.db)",
       "Bash(ls /Users/aritrabose/Desktop/tbc/prisma/*.db)",
       "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \"SELECT COUNT\\(*\\) FROM PetpoojaConfig; SELECT COUNT\\(*\\) FROM MenuItem; SELECT COUNT\\(*\\) FROM TaxConfig;\")",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db ' *)",
+      "Bash(ls -la /Users/aritrabose/Desktop/tbc/*.db)",
+      "Bash(ls -la /Users/aritrabose/Desktop/tbc/prisma/*.db)"
     ]
   }
 }
