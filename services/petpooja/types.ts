@@ -227,11 +227,13 @@ export interface StoreStatusPayload extends PetpoojaAuth {
  * Sent as callback_order_status in the callback webhook payload.
  */
 export const PETPOOJA_ORDER_STATUS: Record<string, string> = {
+  '-1': 'cancelled',
   '1': 'accepted',
-  '2': 'rejected',
-  '3': 'food_ready',
+  '2': 'accepted',
+  '3': 'accepted',
   '4': 'dispatched',
-  '5': 'delivered',
+  '5': 'food_ready',
+  '10': 'delivered',
 };
 
 export interface OrderCallbackPayload {

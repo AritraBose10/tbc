@@ -28,10 +28,18 @@ export default function TrackOrder() {
 
                 if (data.status === 'pending') {
                     setCurrentStep(1);
-                } else if (data.status === 'accepted' || data.status === 'food_ready') {
+                } else if (data.status === 'accepted') {
                     setCurrentStep(2);
                     if (data.deliveryTime) {
                         setDeliveryTime(`${data.deliveryTime} Mins`);
+                    }
+                } else if (data.status === 'food_ready') {
+                    // For Takeaway, Food Ready means it's ready for pickup (Step 3)
+                    // For Delivery, Food Ready means waiting for rider (still Step 2)
+                    if (data.orderDetails?.orderType === 'P') {
+                        setCurrentStep(3);
+                    } else {
+                        setCurrentStep(2);
                     }
                 } else if (data.status === 'dispatched') {
                     setCurrentStep(3);

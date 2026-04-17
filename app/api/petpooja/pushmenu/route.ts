@@ -49,7 +49,17 @@ export async function POST(req: NextRequest) {
     });
     console.log(`[pushmenu] restID=${restaurantId}`);
 
-    // STEP 2 — Upsert items from body.items[]
+    // STEP 2 — Build categoryId → categoryName map from restaurant payload
+    const restaurant = body.restaurants?.[0] as Record<string, unknown> | undefined;
+    const menuCategories = (restaurant?.menucategory as Array<{ categoryid: string; category_name: string }>) ?? [];
+    const categoryNameMap = new Map<string, string>();
+    for (const cat of menuCategories) {
+      if (cat.categoryid && cat.category_name) {
+        categoryNameMap.set(cat.categoryid, cat.category_name);
+      }
+    }
+
+    // STEP 3 — Upsert items from body.items[]
     const items: PushMenuItem[] = body.items ?? [];
     let itemCount = 0;
 
@@ -60,21 +70,24 @@ export async function POST(req: NextRequest) {
       }
 
       const hasVariants = item.itemallowvariation === '1';
+      const categoryName = categoryNameMap.get(item.item_categoryid ?? '') ?? '';
 
       await prisma.menuItem.upsert({
         where:  { petpoojaId: item.itemid },
         update: {
-          name:       item.itemname,
-          price:      parseFloat(item.price) || 0,
-          categoryId: item.item_categoryid ?? '',
-          rawJson:    JSON.stringify(item),
+          name:         item.itemname,
+          price:        parseFloat(item.price) || 0,
+          categoryId:   item.item_categoryid ?? '',
+          categoryName,
+          rawJson:      JSON.stringify(item),
         },
         create: {
-          petpoojaId:  item.itemid,
-          name:        item.itemname,
-          price:       parseFloat(item.price) || 0,
-          categoryId:  item.item_categoryid ?? '',
-          rawJson:     JSON.stringify(item),
+          petpoojaId:   item.itemid,
+          name:         item.itemname,
+          price:        parseFloat(item.price) || 0,
+          categoryId:   item.item_categoryid ?? '',
+          categoryName,
+          rawJson:      JSON.stringify(item),
         },
       });
 

@@ -42,7 +42,9 @@ function MenuContent() {
     useEffect(() => {
         setHydrated(true);
         if (categoryParam) setActiveCategory(categoryParam);
-    }, [categoryParam]);
+        const qParam = searchParams.get("q");
+        if (qParam) setSearchQuery(qParam);
+    }, [categoryParam, searchParams]);
 
     useEffect(() => {
         fetch("/api/menu")

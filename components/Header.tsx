@@ -1,31 +1,90 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
 import { useVegStore } from "@/store/useVegStore";
 import Sidebar from "./Sidebar";
+
+interface MenuItem {
+    petpoojaId: string;
+    name: string;
+    price: number;
+    categoryName: string;
+    isVeg: boolean;
+}
 
 export default function Header({
     onSearch,
 }: {
     onSearch?: (query: string) => void;
 }) {
+    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [hydrated, setHydrated] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
+    const [allItems, setAllItems] = useState<MenuItem[]>([]);
+    const [suggestions, setSuggestions] = useState<MenuItem[]>([]);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
     const getTotalItems = useCartStore((state) => state.getTotalItems);
     const { isVeg, toggle: toggleVeg } = useVegStore();
 
     useEffect(() => {
         setHydrated(true);
+        // Pre-fetch menu for instant suggestions
+        fetch("/api/menu")
+            .then((r) => r.json())
+            .then((data: MenuItem[]) => setAllItems(data))
+            .catch(() => {});
+    }, []);
+
+    // Close suggestions when clicking outside
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+                setIsFocused(false);
+            }
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
     }, []);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const query = e.target.value;
         setSearchQuery(query);
         if (onSearch) onSearch(query);
+
+        if (query.trim().length > 1) {
+            const q = query.toLowerCase();
+            setSuggestions(
+                allItems
+                    .filter((item) => item.name.toLowerCase().includes(q))
+                    .slice(0, 6)
+            );
+        } else {
+            setSuggestions([]);
+        }
+    };
+
+    const handleSelectSuggestion = (item: MenuItem) => {
+        setSearchQuery("");
+        setSuggestions([]);
+        setIsFocused(false);
+        if (onSearch) onSearch("");
+        // Navigate to menu filtered by category so user can see the item
+        router.push(`/menu?category=${encodeURIComponent(item.categoryName)}&q=${encodeURIComponent(item.name)}`);
+    };
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!searchQuery.trim()) return;
+        setIsFocused(false);
+        router.push(`/menu?q=${encodeURIComponent(searchQuery.trim())}`);
     };
 
     const cartCount = hydrated ? getTotalItems() : 0;
@@ -84,22 +143,82 @@ export default function Header({
                 </div>
 
                 {/* Search Bar & Veg Toggle */}
-                <div className="flex items-center gap-3 w-full mt-1">
-                    <motion.div
+                <div className="flex items-center gap-3 w-full mt-1" ref={containerRef}>
+                    <motion.form
+                        onSubmit={handleSearchSubmit}
                         initial={{ y: 10, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.4 }}
-                        className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl flex items-center px-4 py-2.5 shadow-sm hover:shadow-md transition-all group"
+                        className="flex-1 relative"
                     >
-                        <span className="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-xl mr-2">search</span>
-                        <input
-                            type="text"
-                            placeholder="Search for something yummy..."
-                            value={searchQuery}
-                            onChange={handleSearchChange}
-                            className="bg-transparent border-none outline-none w-full text-sm font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 placeholder:font-semibold"
-                        />
-                    </motion.div>
+                        <div className={`flex-1 bg-white dark:bg-slate-900 border rounded-2xl flex items-center px-4 py-2.5 shadow-sm transition-all group ${isFocused ? "border-primary shadow-md shadow-primary/10" : "border-slate-200 dark:border-slate-700/50 hover:shadow-md"}`}>
+                            <span className="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-xl mr-2">search</span>
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                placeholder="Search for something yummy..."
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                                onFocus={() => setIsFocused(true)}
+                                className="bg-transparent border-none outline-none w-full text-sm font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 placeholder:font-semibold"
+                            />
+                            {searchQuery && (
+                                <button
+                                    type="button"
+                                    onClick={() => { setSearchQuery(""); setSuggestions([]); if (onSearch) onSearch(""); }}
+                                    className="ml-1 text-slate-400 hover:text-slate-600 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined text-lg">close</span>
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Suggestions Dropdown */}
+                        <AnimatePresence>
+                            {isFocused && suggestions.length > 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden z-50"
+                                >
+                                    {suggestions.map((item, i) => (
+                                        <button
+                                            key={item.petpoojaId}
+                                            type="button"
+                                            onMouseDown={() => handleSelectSuggestion(item)}
+                                            className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left ${i < suggestions.length - 1 ? "border-b border-slate-50 dark:border-slate-800" : ""}`}
+                                        >
+                                            <span className="material-symbols-outlined text-slate-300 text-lg flex-shrink-0">search</span>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{item.name}</p>
+                                                <p className="text-[11px] text-slate-400 font-medium truncate">{item.categoryName} · ₹{item.price}</p>
+                                            </div>
+                                            <span
+                                                className="text-[9px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0"
+                                                style={{
+                                                    color: item.isVeg ? "#16a34a" : "#dc2626",
+                                                    backgroundColor: item.isVeg ? "#f0fdf4" : "#fef2f2",
+                                                }}
+                                            >
+                                                {item.isVeg ? "VEG" : "NON-VEG"}
+                                            </span>
+                                        </button>
+                                    ))}
+
+                                    {/* Full search CTA */}
+                                    <button
+                                        type="submit"
+                                        className="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 hover:bg-primary/5 transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-primary text-lg">arrow_forward</span>
+                                        <p className="text-sm font-bold text-primary">See all results for &quot;{searchQuery}&quot;</p>
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.form>
 
                     <motion.button
                         initial={{ scale: 0.8, opacity: 0 }}

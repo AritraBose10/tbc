@@ -102,7 +102,7 @@ export default function Checkout() {
             setSwiped(true);
             clearCart();
             setTimeout(() => {
-                router.push(`/tracking?orderId=${data.orderId}`);
+                router.push(`/track/${data.orderId}`);
             }, 1500);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Order placement failed. Please try again.");
