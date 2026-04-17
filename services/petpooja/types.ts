@@ -26,82 +26,111 @@ export type GstLiability = 'restaurant' | 'thirdparty';
 export interface PetpoojaAddon {
   id: string;
   name: string;
-  price: number;
+  group_name: string;
+  price: string;
+  group_id: string;
+  quantity: string;
+}
+
+export interface PetpoojaItemTax {
+  id: string;
+  name: string;
+  tax_percentage: string;
+  amount: string;
 }
 
 export interface PetpoojaOrderItem {
-  /** Petpooja item ID from Push Menu — NOT our internal catalogue ID */
   id: string;
   name: string;
-  /** Unit price including any addon prices */
-  price: number;
-  /** price minus any item-level discount */
-  final_price: number;
-  quantity: number;
+  tax_inclusive: boolean;
   gst_liability: GstLiability;
-  /** Tax amount for this line item */
-  item_tax: number;
-  /** 1 = tax already included in price, 0 = tax added on top */
-  tax_inclusive: 0 | 1;
-  tax_percentage: number;
-  addons: PetpoojaAddon[];
+  item_tax: PetpoojaItemTax[];
+  item_discount: string;
+  price: string;
+  final_price: string;
+  quantity: string;
+  description: string;
+  variation_name: string;
+  variation_id: string;
+  AddonItem: {
+    details: PetpoojaAddon[];
+  };
 }
 
 export interface PetpoojaTaxDetail {
   id: string;
   title: string;
-  type: string;             // e.g. "percentage" or "flat"
-  price: number;            // Rate value
-  tax: number;              // Total tax amount collected
-  restaurant_liable_amt: number;
-}
-
-export interface PetpoojaOrderDetails {
-  /** Must come from the stored value set by Push Menu webhook — never hardcode */
-  restID: string;
-  /** Static mapping code assigned by Petpooja — stored in PETPOOJA_REST_MAP_ID env var */
-  restMapID: string;
-  orderID: string;
-  /** "DD/MM/YYYY" for pre-orders; "" for immediate */
-  preorder_date: string;
-  /** "HH:MM" for pre-orders; "" for immediate */
-  preorder_time: string;
-  advanced_order: 'Y' | 'N';
-  order_type: OrderType;
-  /**
-   * total = sum(item.final_price) - order_discount + GST (if restaurant liable) + packing_charges
-   * ⚠️  Do NOT include delivery charges here — Petpooja requirement
-   */
-  total: number;
-  tax_total: number;
-  discount_total: number;
-  /** "1" = percentage discount, "2" = flat amount discount */
-  discount_type: '1' | '2';
-  /** Unix timestamp in seconds */
-  created_on: number;
-  /** Delivery charge tax percentage */
-  dc_tax_percentage: number;
-  /** Packing charge tax percentage */
-  pc_tax_percentage: number;
-  payment_type: PaymentType;
-  /** 0 = we (third-party) manage delivery; 1 = restaurant manages delivery */
-  enable_delivery: 0 | 1;
-  /** Customer name — required by Petpooja */
-  name: string;
-  /** Customer address — required by Petpooja */
-  address: string;
-  mobile: string;
-  email: string;
-  latitude: string;
-  longitude: string;
-  /** URL that Petpooja will POST order status updates to */
-  callback_url: string;
-  items: PetpoojaOrderItem[];
-  tax_details: PetpoojaTaxDetail[];
+  type: string;
+  price: string;
+  tax: string;
+  restaurant_liable_amt: string;
 }
 
 export interface SaveOrderRequest extends PetpoojaAuth {
-  details: PetpoojaOrderDetails;
+  orderinfo: {
+    OrderInfo: {
+      Restaurant: {
+        details: {
+          res_name: string;
+          address: string;
+          contact_information: string;
+          restID: string;
+        }
+      };
+      Customer: {
+        details: {
+          email: string;
+          name: string;
+          address: string;
+          phone: string;
+          latitude: string;
+          longitude: string;
+        }
+      };
+      Order: {
+        details: {
+          orderID: string;
+          preorder_date: string;
+          preorder_time: string;
+          service_charge: string;
+          sc_tax_amount: string;
+          delivery_charges: string;
+          dc_tax_percentage: string;
+          dc_tax_amount: string;
+          packing_charges: string;
+          pc_tax_amount: string;
+          pc_tax_percentage: string;
+          order_type: OrderType;
+          advanced_order: 'Y' | 'N';
+          urgent_order: boolean;
+          urgent_time: number;
+          payment_type: PaymentType;
+          table_no: string;
+          no_of_persons: string;
+          discount_total: string;
+          tax_total: string;
+          discount_type: 'P' | 'F';
+          total: string;
+          description: string;
+          created_on: string;
+          enable_delivery: 0 | 1;
+          min_prep_time: number;
+          callback_url: string;
+        }
+      };
+      OrderItem: {
+        details: PetpoojaOrderItem[];
+      };
+      Tax: {
+        details: PetpoojaTaxDetail[];
+      };
+      Discount: {
+        details: any[];
+      };
+    };
+    udid: string;
+    device_type: string;
+  };
 }
 
 export interface SaveOrderResponse {
@@ -205,12 +234,16 @@ export const PETPOOJA_ORDER_STATUS: Record<string, string> = {
   '5': 'delivered',
 };
 
-export interface OrderCallbackPayload extends PetpoojaAuth {
-  restaurant_id: string;
-  /** Our internal order ID — Petpooja echoes back exactly what we sent */
-  order_id: string;
-  /** See PETPOOJA_ORDER_STATUS for mapping */
-  callback_order_status: string;
+export interface OrderCallbackPayload {
+  restID: string;
+  orderID: string;
+  status: string;
+  cancel_reason?: string;
+  minimum_prep_time?: string | number;
+  minimum_delivery_time?: string | number;
+  rider_name?: string;
+  rider_phone_number?: string;
+  is_modified?: string | boolean;
   [key: string]: unknown;
 }
 

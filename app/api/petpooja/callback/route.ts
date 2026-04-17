@@ -28,28 +28,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: '1', message: 'OK' });
   }
 
-  if (!body.order_id || !body.callback_order_status) {
-    console.warn('[callback] Missing order_id or callback_order_status', body);
-    // Still 200 — missing fields are our problem, not Petpooja's
+  if (!body.orderID || !body.status) {
+    console.warn('[callback] Missing orderID or status', body);
     return NextResponse.json({ status: '1', message: 'OK' });
   }
 
-  // Map Petpooja's numeric status code to a human-readable internal status.
-  // "unknown" is a safe fallback for future status codes not yet in our map.
-  const internalStatus =
-    PETPOOJA_ORDER_STATUS[body.callback_order_status] ?? 'unknown';
+  const internalStatus = PETPOOJA_ORDER_STATUS[body.status] ?? 'unknown';
 
   console.log(
-    `[callback] order_id=${body.order_id} ` +
-      `petpooja_status=${body.callback_order_status} → ${internalStatus}`,
+    `[callback] orderID=${body.orderID} ` +
+      `petpooja_status=${body.status} → ${internalStatus}`,
   );
 
-  // Persist for audit trail and async order-state reconciliation.
-  // TODO: when an Orders model exists, update its status here or emit an event.
+  // Parse times from strings or numbers
+  const prepTime = body.minimum_prep_time ? Number(body.minimum_prep_time) : null;
+  const deliveryTime = body.minimum_delivery_time ? Number(body.minimum_delivery_time) : null;
+
   await prisma.orderCallback.create({
     data: {
-      orderId: body.order_id,
+      orderId: body.orderID,
       status: internalStatus,
+      prepTime: !Number.isNaN(prepTime) ? prepTime : null,
+      deliveryTime: !Number.isNaN(deliveryTime) ? deliveryTime : null,
       rawJson: JSON.stringify(body),
     },
   });

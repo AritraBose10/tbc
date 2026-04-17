@@ -3,278 +3,216 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 export default function TrackOrder() {
-    const [progress, setProgress] = useState(25);
+    const params = useParams();
+    const orderId = params.orderId as string;
+
     const [currentStep, setCurrentStep] = useState(1);
+    const [deliveryTime, setDeliveryTime] = useState<string | null>(null);
+    const [orderDetails, setOrderDetails] = useState<any>(null);
 
     useEffect(() => {
-        const timer1 = setTimeout(() => {
-            setProgress(50);
-            setCurrentStep(2);
-        }, 3000);
+        if (!orderId) return;
 
-        const timer2 = setTimeout(() => {
-            setProgress(75);
-            setCurrentStep(3);
-        }, 7000);
+        const checkStatus = async () => {
+            try {
+                const res = await fetch(`/api/order/${orderId}/status`);
+                if (!res.ok) return;
+                const data = await res.json();
+                
+                if (data.orderDetails) {
+                    setOrderDetails(data.orderDetails);
+                }
 
-        return () => {
-            clearTimeout(timer1);
-            clearTimeout(timer2);
+                if (data.status === 'pending') {
+                    setCurrentStep(1);
+                } else if (data.status === 'accepted' || data.status === 'food_ready') {
+                    setCurrentStep(2);
+                    if (data.deliveryTime) {
+                        setDeliveryTime(`${data.deliveryTime} Mins`);
+                    }
+                } else if (data.status === 'dispatched') {
+                    setCurrentStep(3);
+                } else if (data.status === 'delivered') {
+                    setCurrentStep(4);
+                }
+            } catch (error) {
+                console.error("Error fetching order status:", error);
+            }
         };
-    }, []);
+
+        // Initial check
+        checkStatus();
+
+        // Poll every 5 seconds
+        const interval = setInterval(checkStatus, 5000);
+        return () => clearInterval(interval);
+    }, [orderId]);
+
+    const isTakeaway = orderDetails?.orderType === 'P';
 
     const steps = [
-        { id: 1, title: "Order Placed", time: "12:30 PM", icon: "receipt_long" },
-        { id: 2, title: "Preparing", time: "12:35 PM", icon: "skillet" },
-        { id: 3, title: "On the Way", time: "Pending", icon: "two_wheeler" },
-        { id: 4, title: "Delivered", time: "Est. 1:15 PM", icon: "home" },
+        { id: 1, title: "Order Placed", subtitle: "We have received your order", icon: "receipt_long" },
+        { id: 2, title: "Order Accepted", subtitle: deliveryTime ? `Preparing your food. Est: ${deliveryTime}` : "Waiting for The Biryani Canteen", icon: "skillet" },
+        { id: 3, title: isTakeaway ? "Ready for Pickup" : "On the Way", subtitle: isTakeaway ? "Your order is ready at the counter" : "Your order has been dispatched", icon: isTakeaway ? "storefront" : "two_wheeler" },
+        { id: 4, title: isTakeaway ? "Picked Up" : "Delivered", subtitle: "Enjoy your meal!", icon: "home" },
     ];
 
     return (
-        <main className="bg-background-light dark:bg-background-dark min-h-screen pb-10 font-display">
-            {/* Map Mockup Background */}
-            <div className="relative h-72 w-full overflow-hidden">
-                {/* Animated gradient map background */}
-                <motion.div
-                    animate={{
-                        background: [
-                            "linear-gradient(135deg, #002366 0%, #003399 50%, #001a4d 100%)",
-                            "linear-gradient(135deg, #001a4d 0%, #002366 50%, #003399 100%)",
-                            "linear-gradient(135deg, #003399 0%, #001a4d 50%, #002366 100%)",
-                        ],
-                    }}
-                    transition={{ duration: 8, repeat: Infinity }}
-                    className="absolute inset-0"
-                />
-
-                {/* Grid pattern overlay */}
-                <div
-                    className="absolute inset-0 opacity-20"
+        <main className="bg-[#f0f3f5] dark:bg-gray-900 min-h-screen pb-10 font-sans">
+            {/* Header / Map Area */}
+            <div className="relative h-80 w-full overflow-hidden bg-zinc-800">
+                {/* Map Pattern Overlay */}
+                <div 
+                    className="absolute inset-0 opacity-40"
                     style={{
-                        backgroundImage:
-                            "url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23d4af35%22 fill-opacity=%220.3%22%3E%3Cpath d=%22M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')",
+                        backgroundImage: "url('data:image/svg+xml,%3Csvg width=%22100%22 height=%22100%22 viewBox=%220 0 100 100%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M0 0h100v100H0z%22 fill=%22%2327272a%22/%3E%3Cpath d=%22M10 10h80v80H10z%22 fill=%22none%22 stroke=%22%233f3f46%22 stroke-width=%221%22/%3E%3Cpath d=%22M30 30h40v40H30z%22 fill=%22none%22 stroke=%22%2352525b%22 stroke-width=%221%22 stroke-dasharray=%224 4%22/%3E%3C/svg%3E')",
+                        backgroundSize: "100px 100px"
                     }}
                 />
-
-                {/* Animated Route */}
-                <svg
-                    className="absolute inset-0 w-full h-full"
-                    preserveAspectRatio="none"
-                >
-                    <motion.path
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: progress > 50 ? 1 : progress / 100 }}
-                        transition={{ duration: 2, ease: "easeInOut" }}
-                        d="M 50 220 Q 150 160 200 110 T 350 60"
-                        fill="none"
-                        stroke="#d4af35"
-                        strokeWidth="3"
-                        strokeDasharray="8 8"
-                        strokeLinecap="round"
-                    />
-                </svg>
-
-                {/* Animated Pin */}
-                <motion.div
-                    initial={{ scale: 0, y: -30 }}
-                    animate={{ scale: 1, y: 0 }}
-                    transition={{ type: "spring", stiffness: 200, delay: 0.3 }}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
-                >
-                    {/* Pulse ring */}
-                    <motion.div
-                        animate={{ scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-primary/30 rounded-full"
-                    />
-                    <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-xl border-3 border-primary relative z-10">
-                        <span className="material-symbols-outlined text-terracotta text-2xl">
-                            local_dining
-                        </span>
-                    </div>
-                    <div className="w-2 h-2 bg-primary rounded-full mt-1.5 shadow-md" />
-                </motion.div>
 
                 {/* Back Button */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="absolute top-4 left-4 z-10"
-                >
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute top-4 left-4 z-20">
                     <Link href="/">
-                        <motion.div
-                            whileTap={{ scale: 0.9 }}
-                            className="w-10 h-10 bg-white/15 backdrop-blur-lg border border-white/20 rounded-full flex items-center justify-center shadow-lg text-white"
-                        >
-                            <span className="material-symbols-outlined">arrow_back</span>
-                        </motion.div>
+                        <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-lg text-gray-800 dark:text-white transition-transform active:scale-95">
+                            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                        </div>
                     </Link>
+                </motion.div>
+
+                {/* Dynamic ETA Pill on Map */}
+                <motion.div 
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center"
+                >
+                    <div className="bg-white dark:bg-gray-800 px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-gray-100 dark:border-gray-700">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        <span className="font-bold text-gray-900 dark:text-white text-lg tracking-tight">
+                            {currentStep === 1 ? "Waiting for Confirmation" : currentStep === 4 ? "Delivered" : deliveryTime ? `Arriving in ${deliveryTime}` : "Preparing Order"}
+                        </span>
+                    </div>
                 </motion.div>
             </div>
 
-            {/* Tracking Details Card */}
-            <motion.div
-                initial={{ y: 50, opacity: 0 }}
+            {/* Bottom Sheet Card */}
+            <motion.div 
+                initial={{ y: 100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 100 }}
-                className="relative -mt-8 bg-white dark:bg-background-dark rounded-t-3xl px-5 pt-9 pb-10 premium-shadow-lg"
+                className="relative -mt-6 bg-white dark:bg-gray-900 rounded-t-[32px] px-6 pt-8 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.3)] min-h-[50vh]"
             >
-                {/* Handle */}
-                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full" />
+                {/* Drag Handle */}
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full" />
 
-                <div className="flex justify-between items-end mb-8">
-                    <div>
-                        <p className="text-slate-500 font-medium text-sm">
-                            Estimated Delivery
-                        </p>
-                        <h1 className="text-4xl font-black text-royal-blue dark:text-white mt-1">
-                            1:15 <span className="text-lg">PM</span>
-                        </h1>
-                    </div>
-                    <motion.div
-                        key={currentStep}
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                    >
-                        <p className="text-sm font-bold text-terracotta bg-terracotta/10 px-4 py-1.5 rounded-full">
-                            {currentStep === 1
-                                ? "Order Received"
-                                : currentStep === 2
-                                    ? "In Kitchen"
-                                    : "On the Way"}
-                        </p>
-                    </motion.div>
+                <div className="mb-8">
+                    <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Order Status</h1>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 font-medium">Order ID: <span className="uppercase">{orderId.split('-')[1] || orderId}</span></p>
                 </div>
 
-                {/* Animated Progress Bar */}
-                <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full mb-9 overflow-hidden">
-                    <motion.div
-                        className="h-full bg-gradient-to-r from-primary via-saffron to-primary rounded-full relative"
-                        animate={{ width: `${progress}%` }}
-                        transition={{ duration: 1, ease: "anticipate" }}
+                {/* Delivery Partner OR Token Ticket */}
+                {currentStep >= 3 && !isTakeaway && (
+                    <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="mb-8 p-4 bg-orange-50 dark:bg-gray-800 rounded-2xl flex items-center justify-between border border-orange-100 dark:border-gray-700"
                     >
-                        {/* Shimmer on progress bar */}
-                        <div className="absolute inset-0 shimmer-bg" />
-                    </motion.div>
-                </div>
-
-                {/* Timeline */}
-                <div className="space-y-0">
-                    {steps.map((step, index) => {
-                        const isActive = currentStep >= step.id;
-                        const isCurrent = currentStep === step.id;
-                        return (
-                            <div key={step.id} className="flex gap-4">
-                                <div className="flex flex-col items-center">
-                                    <motion.div
-                                        animate={{
-                                            scale: isCurrent ? [1, 1.15, 1] : 1,
-                                            backgroundColor: isActive ? "#d4af35" : "#e2e8f0",
-                                        }}
-                                        transition={
-                                            isCurrent
-                                                ? { duration: 1.5, repeat: Infinity }
-                                                : { duration: 0.3 }
-                                        }
-                                        className={`w-11 h-11 rounded-full flex items-center justify-center z-10 ${isActive
-                                                ? "text-royal-blue shadow-lg shadow-primary/30"
-                                                : "text-slate-400 dark:bg-slate-800"
-                                            }`}
-                                    >
-                                        <span className="material-symbols-outlined text-lg">
-                                            {step.icon}
-                                        </span>
-                                    </motion.div>
-                                    {index !== steps.length - 1 && (
-                                        <motion.div
-                                            initial={{ height: 0 }}
-                                            animate={{ height: 40 }}
-                                            transition={{ delay: index * 0.2, duration: 0.5 }}
-                                            className={`w-0.5 mt-2 ${isActive && currentStep > step.id
-                                                    ? "bg-primary"
-                                                    : "bg-slate-200 dark:bg-slate-800"
-                                                }`}
-                                        />
-                                    )}
-                                </div>
-                                <div
-                                    className={`mt-2 ${isActive ? "opacity-100" : "opacity-40"}`}
-                                >
-                                    <h4
-                                        className={`font-bold ${isActive
-                                                ? "text-royal-blue dark:text-white"
-                                                : "text-slate-500"
-                                            }`}
-                                    >
-                                        {step.title}
-                                        {isCurrent && (
-                                            <motion.span
-                                                animate={{ opacity: [1, 0.3, 1] }}
-                                                transition={{ duration: 1.5, repeat: Infinity }}
-                                                className="inline-block ml-2 text-xs text-primary"
-                                            >
-                                                ● Live
-                                            </motion.span>
-                                        )}
-                                    </h4>
-                                    <p className="text-xs text-slate-500 mt-1">{step.time}</p>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* Delivery Hero Info */}
-                {currentStep >= 3 && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        className="mt-8 p-5 bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-between glow-border"
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="relative">
-                                <img
-                                    src="https://i.pravatar.cc/150?u=a042581f4e29026024d"
-                                    className="w-13 h-13 rounded-full border-2 border-primary object-cover"
-                                    alt="Driver"
-                                />
-                                <motion.div
-                                    animate={{ scale: [1, 1.3, 1] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                    className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-slate-900"
-                                />
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-orange-200 dark:bg-orange-900/50 rounded-full flex items-center justify-center">
+                                <span className="material-symbols-outlined text-orange-600 dark:text-orange-400">person</span>
                             </div>
                             <div>
-                                <p className="font-bold text-royal-blue dark:text-white text-sm">
-                                    Ahmed Raza
-                                </p>
-                                <div className="flex items-center text-xs text-slate-500">
-                                    <span className="material-symbols-outlined text-[14px] text-primary fill-1">
-                                        star
-                                    </span>
-                                    <span className="font-bold ml-1">4.9</span>
-                                    <span className="mx-1">•</span>
-                                    <span>Royal Express</span>
-                                </div>
+                                <p className="font-bold text-gray-900 dark:text-white">Delivery Partner</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Assigned by Petpooja</p>
                             </div>
                         </div>
                         <div className="flex gap-2">
-                            <motion.button
-                                whileTap={{ scale: 0.9 }}
-                                className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 flex items-center justify-center text-royal-blue dark:text-primary shadow-sm"
-                            >
-                                <span className="material-symbols-outlined">message</span>
-                            </motion.button>
-                            <motion.button
-                                whileTap={{ scale: 0.9 }}
-                                className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-royal-blue shadow-sm"
-                            >
-                                <span className="material-symbols-outlined">call</span>
-                            </motion.button>
+                            <button className="w-10 h-10 rounded-full bg-white dark:bg-gray-700 shadow-sm flex items-center justify-center text-gray-700 dark:text-gray-300">
+                                <span className="material-symbols-outlined text-[20px]">call</span>
+                            </button>
                         </div>
                     </motion.div>
+                )}
+
+                {isTakeaway && orderDetails?.tokenNumber && (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-600 to-red-700 text-white shadow-xl flex items-center justify-center p-6 border-4 border-red-800"
+                        style={{ borderStyle: "dashed" }}
+                    >
+                        {/* Token Number Graphic */}
+                        <div className="text-center">
+                            <p className="text-red-200 font-bold uppercase tracking-widest text-xs mb-1">Takeaway Token</p>
+                            <h2 className="text-6xl font-black tracking-tighter" style={{ fontFamily: "monospace" }}>
+                                {orderDetails.tokenNumber}
+                            </h2>
+                            <p className="text-red-100 text-xs mt-2 opacity-80">Show this number at the counter</p>
+                        </div>
+                        
+                        {/* Ticket cutouts */}
+                        <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white dark:bg-gray-900 rounded-full" />
+                        <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white dark:bg-gray-900 rounded-full" />
+                    </motion.div>
+                )}
+
+                {/* Vertical Timeline */}
+                <div className="relative pl-4 mb-10">
+                    {/* Continuous vertical line */}
+                    <div className="absolute left-[27px] top-4 bottom-8 w-0.5 bg-gray-100 dark:bg-gray-800" />
+                    
+                    <div className="space-y-8 relative">
+                        {steps.map((step) => {
+                            const isActive = currentStep === step.id;
+                            const isPast = currentStep > step.id;
+                            
+                            return (
+                                <div key={step.id} className="flex gap-5 relative z-10">
+                                    <div className="flex flex-col items-center">
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center border-[3px] bg-white dark:bg-gray-900 ${
+                                            isActive ? 'border-orange-500 shadow-[0_0_0_4px_rgba(249,115,22,0.1)]' : 
+                                            isPast ? 'border-green-500 bg-green-500' : 
+                                            'border-gray-200 dark:border-gray-700'
+                                        }`}>
+                                            {isPast && <span className="material-symbols-outlined text-[12px] text-white font-bold">check</span>}
+                                            {isActive && <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />}
+                                        </div>
+                                    </div>
+                                    <div className={`-mt-1 ${!isPast && !isActive ? 'opacity-40' : ''}`}>
+                                        <h4 className={`font-bold text-[15px] ${isActive ? 'text-orange-600 dark:text-orange-400' : 'text-gray-900 dark:text-white'}`}>
+                                            {step.title}
+                                        </h4>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">{step.subtitle}</p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Order Summary Section */}
+                {orderDetails && (
+                    <div className="border-t border-gray-100 dark:border-gray-800 pt-8">
+                        <h3 className="font-bold text-gray-900 dark:text-white mb-4">Bill Details</h3>
+                        <div className="space-y-3 mb-4">
+                            {orderDetails.items?.map((item: any) => (
+                                <div key={item.id} className="flex justify-between items-start text-sm">
+                                    <div className="flex gap-2 text-gray-700 dark:text-gray-300">
+                                        <span className="border border-green-500 text-green-600 bg-green-50 dark:bg-green-900/20 text-[10px] h-4 w-4 flex items-center justify-center rounded-sm">
+                                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                                        </span>
+                                        <span>{item.name} <span className="text-gray-400">x{item.quantity}</span></span>
+                                    </div>
+                                    <span className="font-medium text-gray-900 dark:text-white">₹{(item.price * item.quantity).toFixed(2)}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="border-t border-dashed border-gray-200 dark:border-gray-700 pt-4 flex justify-between items-center">
+                            <span className="font-bold text-gray-900 dark:text-white">Total Amount</span>
+                            <span className="font-black text-lg text-gray-900 dark:text-white">₹{orderDetails.totalAmount?.toFixed(2)}</span>
+                        </div>
+                    </div>
                 )}
             </motion.div>
         </main>

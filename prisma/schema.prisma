@@ -63,11 +63,42 @@ model TaxConfig {
 // We respond HTTP 200 immediately; this table is written asynchronously.
 // Use orderId to join with your Orders table when that model is added.
 model OrderCallback {
-  id         Int      @id @default(autoincrement())
-  orderId    String                               // Our internal order ID (echoed back by Petpooja)
-  status     String                               // Human-readable status, e.g. "accepted", "dispatched"
-  rawJson    String                               // Full callback payload for debugging
-  receivedAt DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  orderId      String                               // Our internal order ID (echoed back by Petpooja)
+  status       String                               // Human-readable status, e.g. "accepted", "dispatched"
+  prepTime     Int?                                 // Captured from 'minimum_prep_time' in webhook
+  deliveryTime Int?                                 // Captured from 'minimum_delivery_time' in webhook
+  rawJson      String                               // Full callback payload for debugging
+  receivedAt   DateTime @default(now())
+
+  // Relation to Order
+  order        Order?   @relation(fields: [orderId], references: [id])
 
   @@index([orderId])
+}
+
+model Order {
+  id              String          @id // Unique ID (e.g. tbc-...)
+  customerName    String
+  customerPhone   String
+  customerAddress String
+  totalAmount     Float
+  status          String          @default("pending") // Overall status derived from callbacks
+  orderType       String          @default("H")       // "H" = Delivery, "P" = Takeaway
+  tokenNumber     String?                             // E.g. "4829"
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  items           OrderItem[]
+  callbacks       OrderCallback[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  name      String
+  quantity  Int
+  price     Float   // Price at the time of order
 }

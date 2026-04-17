@@ -10,41 +10,103 @@ import { PREDESTINED_LOCATIONS } from "@/constants/locations";
 export default function Checkout() {
     const router = useRouter();
     const { items, getSubtotal, getTax, getTotal, clearCart } = useCartStore();
-    const [swiped, setSwiped] = useState(false);
-    const [error, setError] = useState("");
 
+    const [swiped, setSwiped]   = useState(false);
+    const [placing, setPlacing] = useState(false);
+    const [error, setError]     = useState("");
+
+    // Customer info
+    const [customerName, setCustomerName]   = useState("");
+    const [customerPhone, setCustomerPhone] = useState("");
+
+    // Delivery location
     const [selectedBuilding, setSelectedBuilding] = useState("");
-    const [selectedFloor, setSelectedFloor] = useState("");
-    const [selectedRoom, setSelectedRoom] = useState("");
+    const [selectedFloor, setSelectedFloor]       = useState("");
+    const [selectedRoom, setSelectedRoom]         = useState("");
+
+    // Order Type (H = Delivery, P = Takeaway)
+    const [orderType, setOrderType] = useState<"H" | "P">("H");
 
     const subtotal = getSubtotal();
-    const taxes = getTax();
-    const total = getTotal();
+    const taxes    = getTax();
+    const total    = getTotal();
 
-    const dragX = useMotionValue(0);
-    const dragBg = useTransform(
-        dragX,
-        [0, 250],
-        ["rgba(178,34,34,1)", "rgba(34,139,34,1)"]
-    );
+    const dragX  = useMotionValue(0);
+    const dragBg = useTransform(dragX, [0, 250], ["rgba(178,34,34,1)", "rgba(34,139,34,1)"]);
     const dragOpacity = useTransform(dragX, [0, 200], [1, 0.3]);
 
-    const handleDragEnd = () => {
+    const handleDragEnd = async () => {
         const x = dragX.get();
-        if (x > 200) {
-            if (!selectedBuilding || !selectedFloor || !selectedRoom) {
-                setError("Please select your building, floor, and room first.");
-                animate(dragX, 0, { type: "spring", stiffness: 300 });
-                return;
+        if (x <= 200) {
+            animate(dragX, 0, { type: "spring", stiffness: 300 });
+            return;
+        }
+
+        // ── Validation ─────────────────────────────────────────────────────
+        if (!customerName.trim() || !customerPhone.trim()) {
+            setError("Please enter your name and phone number.");
+            animate(dragX, 0, { type: "spring", stiffness: 300 });
+            return;
+        }
+        if (!/^\d{10}$/.test(customerPhone.trim())) {
+            setError("Please enter a valid 10-digit mobile number.");
+            animate(dragX, 0, { type: "spring", stiffness: 300 });
+            return;
+        }
+        if (orderType === "H" && (!selectedBuilding || !selectedFloor || !selectedRoom)) {
+            setError("Please select your building, floor, and room.");
+            animate(dragX, 0, { type: "spring", stiffness: 300 });
+            return;
+        }
+
+        setError("");
+        setPlacing(true);
+        animate(dragX, 290, { type: "spring", stiffness: 300 });
+
+        try {
+            const building = PREDESTINED_LOCATIONS.find((b) => b.id === selectedBuilding);
+            const floor    = building?.floors.find((f) => f.id === selectedFloor);
+            const address = orderType === "P" 
+                ? "Takeaway / Self Pickup" 
+                : `Room ${selectedRoom}, ${floor?.name ?? selectedFloor}, ${building?.name ?? selectedBuilding}`;
+
+            const res = await fetch("/api/order", {
+                method:  "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    customer: {
+                        name:    customerName.trim(),
+                        address,
+                        mobile:  customerPhone.trim(),
+                        email:   "",
+                        latitude:  "",
+                        longitude: "",
+                    },
+                    items: items.map((item) => ({
+                        petpoojaId: item.id,   // already a real Petpooja itemid from live menu
+                        name:       item.name,
+                        price:      item.price,
+                        quantity:   item.quantity,
+                    })),
+                    paymentType: "COD",
+                    orderType:   orderType,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!data.success) {
+                throw new Error(data.error ?? "Order placement failed");
             }
-            setError("");
-            animate(dragX, 290, { type: "spring", stiffness: 300 });
+
             setSwiped(true);
+            clearCart();
             setTimeout(() => {
-                clearCart();
-                router.push("/tracking");
+                router.push(`/tracking?orderId=${data.orderId}`);
             }, 1500);
-        } else {
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Order placement failed. Please try again.");
+            setPlacing(false);
             animate(dragX, 0, { type: "spring", stiffness: 300 });
         }
     };
@@ -71,104 +133,158 @@ export default function Checkout() {
 
             <div className="p-5 space-y-5 mt-2">
 
-                {/* Delivery Location */}
+                {/* Order Type Toggle */}
+                <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl flex gap-1 relative shadow-inner">
+                    <button
+                        onClick={() => setOrderType("H")}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm z-10 transition-colors ${orderType === "H" ? "text-slate-800 dark:text-slate-900" : "text-slate-500 dark:text-slate-400"}`}
+                    >
+                        <span className="material-symbols-outlined text-[20px]">moped</span>
+                        Delivery
+                    </button>
+                    <button
+                        onClick={() => setOrderType("P")}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm z-10 transition-colors ${orderType === "P" ? "text-slate-800 dark:text-slate-900" : "text-slate-500 dark:text-slate-400"}`}
+                    >
+                        <span className="material-symbols-outlined text-[20px]">shopping_bag</span>
+                        Takeaway
+                    </button>
+                    {/* Active Background */}
+                    <motion.div
+                        layout
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                        className="absolute top-1 bottom-1 w-[calc(50%-6px)] bg-white dark:bg-primary rounded-xl shadow-sm z-0"
+                        style={{ left: orderType === "H" ? "4px" : "calc(50% + 2px)" }}
+                    />
+                </div>
+
+                {/* Customer Info */}
                 <motion.section
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
+                    transition={{ delay: 0.05 }}
                     className="bg-white dark:bg-slate-900/80 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-800"
                 >
                     <div className="flex items-center gap-2 mb-4">
-                        <span className="material-symbols-outlined text-royal-blue dark:text-primary text-xl">location_on</span>
-                        <h2 className="font-bold text-slate-800 dark:text-slate-200">Delivery Location</h2>
+                        <span className="material-symbols-outlined text-royal-blue dark:text-primary text-xl">person</span>
+                        <h2 className="font-bold text-slate-800 dark:text-slate-200">Your Details</h2>
                     </div>
-
                     <div className="space-y-3">
-                        {/* Building */}
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Building</label>
-                            <div className="relative">
-                                <select
-                                    className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary transition-colors cursor-pointer"
-                                    value={selectedBuilding}
-                                    onChange={(e) => {
-                                        setSelectedBuilding(e.target.value);
-                                        setSelectedFloor("");
-                                        setSelectedRoom("");
-                                        setError("");
-                                    }}
-                                >
-                                    <option value="" disabled>Select Building</option>
-                                    {PREDESTINED_LOCATIONS.map((b) => (
-                                        <option key={b.id} value={b.id}>{b.name}</option>
-                                    ))}
-                                </select>
-                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
-                            </div>
-                        </div>
-
-                        {/* Floor */}
-                        <div className={selectedBuilding ? "opacity-100" : "opacity-40 pointer-events-none"}>
-                            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Floor</label>
-                            <div className="relative">
-                                <select
-                                    className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary transition-colors cursor-pointer disabled:cursor-not-allowed"
-                                    value={selectedFloor}
-                                    onChange={(e) => {
-                                        setSelectedFloor(e.target.value);
-                                        setSelectedRoom("");
-                                    }}
-                                    disabled={!selectedBuilding}
-                                >
-                                    <option value="" disabled>Select Floor</option>
-                                    {selectedBuilding &&
-                                        PREDESTINED_LOCATIONS.find((b) => b.id === selectedBuilding)?.floors.map((f) => (
-                                            <option key={f.id} value={f.id}>{f.name}</option>
-                                        ))}
-                                </select>
-                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
-                            </div>
-                        </div>
-
-                        {/* Room */}
-                        <div className={selectedFloor ? "opacity-100" : "opacity-40 pointer-events-none"}>
-                            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Room</label>
-                            <div className="relative">
-                                <select
-                                    className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary transition-colors cursor-pointer disabled:cursor-not-allowed"
-                                    value={selectedRoom}
-                                    onChange={(e) => setSelectedRoom(e.target.value)}
-                                    disabled={!selectedFloor}
-                                >
-                                    <option value="" disabled>Select Room</option>
-                                    {selectedFloor &&
-                                        PREDESTINED_LOCATIONS.find((b) => b.id === selectedBuilding)
-                                            ?.floors.find((f) => f.id === selectedFloor)
-                                            ?.rooms.map((r) => (
-                                                <option key={r} value={r}>Room {r}</option>
-                                            ))}
-                                </select>
-                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
-                            </div>
-                        </div>
-
-                        {/* Selected summary */}
-                        {selectedBuilding && selectedFloor && selectedRoom && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl px-4 py-3 mt-1"
-                            >
-                                <span className="material-symbols-outlined text-green-600 text-base">check_circle</span>
-                                <span className="text-xs font-bold text-green-700 dark:text-green-400">
-                                    Delivering to Room {selectedRoom},{" "}
-                                    {PREDESTINED_LOCATIONS.find((b) => b.id === selectedBuilding)?.floors.find((f) => f.id === selectedFloor)?.name},{" "}
-                                    {PREDESTINED_LOCATIONS.find((b) => b.id === selectedBuilding)?.name}
-                                </span>
-                            </motion.div>
-                        )}
+                        <input
+                            type="text"
+                            placeholder="Full name"
+                            value={customerName}
+                            onChange={(e) => { setCustomerName(e.target.value); setError(""); }}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary transition-colors"
+                        />
+                        <input
+                            type="tel"
+                            placeholder="Phone number"
+                            value={customerPhone}
+                            onChange={(e) => { setCustomerPhone(e.target.value); setError(""); }}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary transition-colors"
+                        />
                     </div>
                 </motion.section>
+
+                {/* Delivery Location */}
+                {orderType === "H" && (
+                    <motion.section
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="bg-white dark:bg-slate-900/80 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden"
+                    >
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className="material-symbols-outlined text-royal-blue dark:text-primary text-xl">location_on</span>
+                            <h2 className="font-bold text-slate-800 dark:text-slate-200">Delivery Location</h2>
+                        </div>
+
+                        <div className="space-y-3">
+                            {/* Building */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Building</label>
+                                <div className="relative">
+                                    <select
+                                        className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary transition-colors cursor-pointer"
+                                        value={selectedBuilding}
+                                        onChange={(e) => {
+                                            setSelectedBuilding(e.target.value);
+                                            setSelectedFloor("");
+                                            setSelectedRoom("");
+                                            setError("");
+                                        }}
+                                    >
+                                        <option value="" disabled>Select Building</option>
+                                        {PREDESTINED_LOCATIONS.map((b) => (
+                                            <option key={b.id} value={b.id}>{b.name}</option>
+                                        ))}
+                                    </select>
+                                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
+                                </div>
+                            </div>
+
+                            {/* Floor */}
+                            <div className={selectedBuilding ? "opacity-100" : "opacity-40 pointer-events-none"}>
+                                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Floor</label>
+                                <div className="relative">
+                                    <select
+                                        className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary transition-colors cursor-pointer disabled:cursor-not-allowed"
+                                        value={selectedFloor}
+                                        onChange={(e) => { setSelectedFloor(e.target.value); setSelectedRoom(""); }}
+                                        disabled={!selectedBuilding}
+                                    >
+                                        <option value="" disabled>Select Floor</option>
+                                        {selectedBuilding &&
+                                            PREDESTINED_LOCATIONS.find((b) => b.id === selectedBuilding)?.floors.map((f) => (
+                                                <option key={f.id} value={f.id}>{f.name}</option>
+                                            ))}
+                                    </select>
+                                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
+                                </div>
+                            </div>
+
+                            {/* Room */}
+                            <div className={selectedFloor ? "opacity-100" : "opacity-40 pointer-events-none"}>
+                                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Room</label>
+                                <div className="relative">
+                                    <select
+                                        className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-xl px-4 py-3 focus:outline-none focus:border-primary transition-colors cursor-pointer disabled:cursor-not-allowed"
+                                        value={selectedRoom}
+                                        onChange={(e) => setSelectedRoom(e.target.value)}
+                                        disabled={!selectedFloor}
+                                    >
+                                        <option value="" disabled>Select Room</option>
+                                        {selectedFloor &&
+                                            PREDESTINED_LOCATIONS.find((b) => b.id === selectedBuilding)
+                                                ?.floors.find((f) => f.id === selectedFloor)
+                                                ?.rooms.map((r) => (
+                                                    <option key={r} value={r}>Room {r}</option>
+                                                ))}
+                                    </select>
+                                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
+                                </div>
+                            </div>
+
+                            {selectedBuilding && selectedFloor && selectedRoom && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl px-4 py-3 mt-1"
+                                >
+                                    <span className="material-symbols-outlined text-green-600 text-base">check_circle</span>
+                                    <span className="text-xs font-bold text-green-700 dark:text-green-400">
+                                        Delivering to Room {selectedRoom},{" "}
+                                        {PREDESTINED_LOCATIONS.find((b) => b.id === selectedBuilding)?.floors.find((f) => f.id === selectedFloor)?.name},{" "}
+                                        {PREDESTINED_LOCATIONS.find((b) => b.id === selectedBuilding)?.name}
+                                    </span>
+                                </motion.div>
+                            )}
+                        </div>
+                    </motion.section>
+                )}
 
                 {/* Order Summary */}
                 <motion.section
@@ -266,10 +382,7 @@ export default function Checkout() {
             >
                 <div className="flex justify-between items-center mb-4 px-1">
                     <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Amount to Pay</span>
-                    <span
-                        className="text-2xl font-extrabold text-royal-blue dark:text-white"
-                        style={{ fontFamily: "system-ui, sans-serif" }}
-                    >
+                    <span className="text-2xl font-extrabold text-royal-blue dark:text-white" style={{ fontFamily: "system-ui, sans-serif" }}>
                         &#8377;{total.toFixed(2)}
                     </span>
                 </div>
@@ -278,7 +391,8 @@ export default function Checkout() {
                     style={{ backgroundColor: dragBg }}
                     className="relative w-full h-16 rounded-full flex items-center justify-center overflow-hidden"
                 >
-                    {!swiped && (
+                    {/* Draggable thumb — hidden while placing or after swipe */}
+                    {!swiped && !placing && (
                         <motion.div
                             drag="x"
                             dragConstraints={{ left: 0, right: 290 }}
@@ -292,6 +406,7 @@ export default function Checkout() {
                         </motion.div>
                     )}
 
+                    {/* States */}
                     {swiped ? (
                         <motion.div
                             initial={{ scale: 0 }}
@@ -301,6 +416,11 @@ export default function Checkout() {
                             <span className="material-symbols-outlined text-white">check_circle</span>
                             <span className="text-white font-black uppercase tracking-widest text-sm">Order Placed!</span>
                         </motion.div>
+                    ) : placing ? (
+                        <div className="flex items-center gap-3">
+                            <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                            <span className="text-white font-black uppercase tracking-widest text-sm">Placing Order…</span>
+                        </div>
                     ) : (
                         <motion.span
                             style={{ opacity: dragOpacity }}

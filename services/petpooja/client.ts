@@ -59,12 +59,13 @@ export async function petpoojaPost<T>(
   const url = `${BASE_URL}${path}`;
   const label = `[petpooja] POST ${path} attempt=${attempt}`;
 
-  console.log(`${label} →`, JSON.stringify(payload));
+  const wireBody = JSON.stringify(payload);
+  console.log(`${label} →`, wireBody);
 
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: wireBody,
   });
 
   const text = await res.text();

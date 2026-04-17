@@ -38,20 +38,16 @@ export async function POST(req: NextRequest) {
       body = await req.json();
     }
 
-    // STEP 1 — Store restID (hardcoded, confirmed by Petpooja) and restaurantId.
-    // Sequential writes — SQLite allows only one concurrent writer.
+    // STEP 1 — Store the restaurant ID from Petpooja's push menu payload.
+    // Petpooja sends restaurantid in restaurants[0] — this is the value that
+    // must be echoed back as restID in every Save Order call.
     const restaurantId = body.restaurants?.[0]?.restaurantid ?? '';
     await prisma.petpoojaConfig.upsert({
       where:  { key: 'restID' },
-      update: { value: 'A409632R' },
-      create: { key: 'restID', value: 'A409632R' },
-    });
-    await prisma.petpoojaConfig.upsert({
-      where:  { key: 'restaurantId' },
       update: { value: restaurantId },
-      create: { key: 'restaurantId', value: restaurantId },
+      create: { key: 'restID', value: restaurantId },
     });
-    console.log(`[pushmenu] restID=A409632R restaurantId=${restaurantId}`);
+    console.log(`[pushmenu] restID=${restaurantId}`);
 
     // STEP 2 — Upsert items from body.items[]
     const items: PushMenuItem[] = body.items ?? [];
