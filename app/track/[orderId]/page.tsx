@@ -12,7 +12,6 @@ export default function TrackOrder() {
     const [currentStep, setCurrentStep] = useState(1);
     const [deliveryTime, setDeliveryTime] = useState<string | null>(null);
     const [orderDetails, setOrderDetails] = useState<any>(null);
-
     useEffect(() => {
         if (!orderId) return;
 
@@ -162,6 +161,26 @@ export default function TrackOrder() {
                         {/* Ticket cutouts */}
                         <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white dark:bg-gray-900 rounded-full" />
                         <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white dark:bg-gray-900 rounded-full" />
+                    </motion.div>
+                )}
+
+                {/* Manual Picked Up Action for Users */}
+                {currentStep === 3 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-8"
+                    >
+                        <button
+                            disabled
+                            className="w-full py-4 rounded-xl font-black text-white text-lg tracking-tight flex items-center justify-center gap-2 shadow-lg bg-gray-300 dark:bg-gray-700 cursor-not-allowed opacity-70"
+                        >
+                            <span className="material-symbols-outlined">delivery_truck_speed</span>
+                            {isTakeaway ? "I have Picked Up my Order" : "I have Received my Order"}
+                        </button>
+                        <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-2 font-medium">
+                            🚚 Delivery Services Coming Soon
+                        </p>
                     </motion.div>
                 )}
 
