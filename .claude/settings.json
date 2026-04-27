@@ -16,7 +16,12 @@
       "Bash(grep -l \"pushmenu\\\\|petpoojaConfig\\\\|restaurantId\" /Users/aritrabose/Desktop/tbc/.next/server/chunks/*.js)",
       "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \"SELECT COUNT\\(*\\) as Items FROM MenuItem; SELECT COUNT\\(*\\) as Addons FROM MenuAddon; SELECT COUNT\\(*\\) as Variants FROM MenuVariant; SELECT COUNT\\(*\\) as Taxes FROM TaxConfig; SELECT key, value FROM PetpoojaConfig;\")",
       "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \"SELECT key,value FROM PetpoojaConfig; SELECT COUNT\\(*\\) FROM MenuItem; SELECT COUNT\\(*\\) FROM TaxConfig;\")",
-      "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \".schema\")"
+      "Bash(sqlite3 /Users/aritrabose/Desktop/tbc/prisma/petpooja.db \".schema\")",
+      "Bash(curl -s http://localhost:3000/api/menu)",
+      "Bash(grep -v \"^$\")",
+      "Bash(npx tsx --env-file=.env.sandbox -e ' *)",
+      "Bash(node scripts/run-test-scenarios.mjs)",
+      "mcp__claude_ai_Gmail__search_threads"
     ]
   }
 }
