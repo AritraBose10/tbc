@@ -23,24 +23,25 @@ export async function GET(
       include: { items: true },
     });
 
+    const NO_CACHE = { 'Cache-Control': 'no-store' };
+
     if (!latestCallback) {
-      // No callback yet means it's still pending/waiting for acceptance
-      return NextResponse.json({
-        status: 'pending',
-        prepTime: null,
-        deliveryTime: null,
-        receivedAt: null,
-        orderDetails,
-      });
+      return NextResponse.json(
+        { status: 'pending', prepTime: null, deliveryTime: null, receivedAt: null, orderDetails },
+        { headers: NO_CACHE },
+      );
     }
 
-    return NextResponse.json({
-      status: latestCallback.status, // e.g. "accepted", "dispatched", "delivered"
-      prepTime: latestCallback.prepTime,
-      deliveryTime: latestCallback.deliveryTime,
-      receivedAt: latestCallback.receivedAt,
-      orderDetails,
-    });
+    return NextResponse.json(
+      {
+        status: latestCallback.status,
+        prepTime: latestCallback.prepTime,
+        deliveryTime: latestCallback.deliveryTime,
+        receivedAt: latestCallback.receivedAt,
+        orderDetails,
+      },
+      { headers: NO_CACHE },
+    );
   } catch (error) {
     console.error('Error fetching order status:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

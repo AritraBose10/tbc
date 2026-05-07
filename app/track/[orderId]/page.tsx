@@ -17,7 +17,7 @@ export default function TrackOrder() {
 
         const checkStatus = async () => {
             try {
-                const res = await fetch(`/api/order/${orderId}/status`);
+                const res = await fetch(`/api/order/${orderId}/status`, { cache: 'no-store' });
                 if (!res.ok) return;
                 const data = await res.json();
                 
