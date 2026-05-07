@@ -147,7 +147,8 @@ export async function saveOrder(
 
   // Mathematical Reconciliation Check
   const serviceCharge = input.serviceCharge || 0;
-  const calculatedTotal = input.items.reduce((sum, item) => sum + (item.final_price * item.quantity), 0)
+  // final_price is already the line total (unit_price × quantity), so don't multiply again
+  const calculatedTotal = input.items.reduce((sum, item) => sum + item.final_price, 0)
     + input.taxTotal
     + input.packingCharges
     + serviceCharge
