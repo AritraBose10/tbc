@@ -237,9 +237,13 @@ export const PETPOOJA_ORDER_STATUS: Record<string, string> = {
 };
 
 export interface OrderCallbackPayload {
-  restID: string;
-  orderID: string;
-  status: string;
+  restID?: string;
+  /** Petpooja sends order_id (snake_case); orderID is kept for backwards compat */
+  order_id?: string;
+  orderID?: string;
+  /** Petpooja sends callback_order_status; status is kept for backwards compat */
+  callback_order_status?: string;
+  status?: string;
   cancel_reason?: string;
   minimum_prep_time?: string | number;
   minimum_delivery_time?: string | number;

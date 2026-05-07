@@ -1,8 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+const NO_CACHE = { 'Cache-Control': 'no-store' };
+
 export async function GET(
-  request: NextRequest,
+  _request: Request,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
@@ -12,33 +14,28 @@ export async function GET(
       return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
     }
 
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true },
+    });
+
+    if (!order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    // Pull prepTime / deliveryTime from the latest callback if present.
     const latestCallback = await prisma.orderCallback.findFirst({
       where: { orderId },
       orderBy: { receivedAt: 'desc' },
     });
 
-    // Fetch the order and its items
-    const orderDetails = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: { items: true },
-    });
-
-    const NO_CACHE = { 'Cache-Control': 'no-store' };
-
-    if (!latestCallback) {
-      return NextResponse.json(
-        { status: 'pending', prepTime: null, deliveryTime: null, receivedAt: null, orderDetails },
-        { headers: NO_CACHE },
-      );
-    }
-
     return NextResponse.json(
       {
-        status: latestCallback.status,
-        prepTime: latestCallback.prepTime,
-        deliveryTime: latestCallback.deliveryTime,
-        receivedAt: latestCallback.receivedAt,
-        orderDetails,
+        status:       order.status,          // source of truth
+        prepTime:     latestCallback?.prepTime     ?? null,
+        deliveryTime: latestCallback?.deliveryTime ?? null,
+        receivedAt:   latestCallback?.receivedAt   ?? null,
+        orderDetails: order,
       },
       { headers: NO_CACHE },
     );
