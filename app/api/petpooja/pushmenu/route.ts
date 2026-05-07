@@ -43,11 +43,11 @@ export async function POST(req: NextRequest) {
     // must be echoed back as restID in every Save Order call.
     const restaurantId = body.restaurants?.[0]?.restaurantid ?? '';
     await prisma.petpoojaConfig.upsert({
-      where:  { key: 'restID' },
+      where:  { key: 'restaurantId' },
       update: { value: restaurantId },
-      create: { key: 'restID', value: restaurantId },
+      create: { key: 'restaurantId', value: restaurantId },
     });
-    console.log(`[pushmenu] restID=${restaurantId}`);
+    console.log(`[pushmenu] restaurantId=${restaurantId}`);
 
     // STEP 2 — Build categoryId → categoryName map from restaurant payload
     const restaurant = body.restaurants?.[0] as Record<string, unknown> | undefined;

@@ -12,6 +12,7 @@ export default function TrackOrder() {
     const [currentStep, setCurrentStep] = useState(1);
     const [deliveryTime, setDeliveryTime] = useState<string | null>(null);
     const [orderDetails, setOrderDetails] = useState<any>(null);
+    const [isCancelled, setIsCancelled] = useState(false);
     useEffect(() => {
         if (!orderId) return;
 
@@ -25,7 +26,9 @@ export default function TrackOrder() {
                     setOrderDetails(data.orderDetails);
                 }
 
-                if (data.status === 'pending') {
+                if (data.status === 'cancelled' || data.status === 'rejected') {
+                    setIsCancelled(true);
+                } else if (data.status === 'pending') {
                     setCurrentStep(1);
                 } else if (data.status === 'accepted') {
                     setCurrentStep(2);
@@ -96,9 +99,9 @@ export default function TrackOrder() {
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center"
                 >
                     <div className="bg-white dark:bg-gray-800 px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-gray-100 dark:border-gray-700">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        <div className={`w-2 h-2 rounded-full animate-pulse ${isCancelled ? 'bg-red-500' : 'bg-green-500'}`} />
                         <span className="font-bold text-gray-900 dark:text-white text-lg tracking-tight">
-                            {currentStep === 1 ? "Waiting for Confirmation" : currentStep === 4 ? "Delivered" : deliveryTime ? `Arriving in ${deliveryTime}` : "Preparing Order"}
+                            {isCancelled ? "Order Cancelled" : currentStep === 1 ? "Waiting for Confirmation" : currentStep === 4 ? "Delivered" : deliveryTime ? `Arriving in ${deliveryTime}` : "Preparing Order"}
                         </span>
                     </div>
                 </motion.div>
@@ -117,6 +120,23 @@ export default function TrackOrder() {
                     <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Order Status</h1>
                     <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 font-medium">Order ID: <span className="uppercase">{orderId.split('-')[1] || orderId}</span></p>
                 </div>
+
+                {/* Cancelled / Rejected Banner */}
+                {isCancelled && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-8 p-5 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800 flex items-center gap-4"
+                    >
+                        <div className="w-12 h-12 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-2xl">cancel</span>
+                        </div>
+                        <div>
+                            <p className="font-bold text-red-700 dark:text-red-400">Order Cancelled</p>
+                            <p className="text-sm text-red-500 dark:text-red-500 mt-0.5">Your order was cancelled by the restaurant. Please contact us if you have any questions.</p>
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* Delivery Partner OR Token Ticket */}
                 {currentStep >= 3 && !isTakeaway && (

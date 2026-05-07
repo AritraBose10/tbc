@@ -229,12 +229,11 @@ export interface StoreStatusPayload extends PetpoojaAuth {
  */
 export const PETPOOJA_ORDER_STATUS: Record<string, string> = {
   '-1': 'cancelled',
-  '1': 'accepted',
-  '2': 'accepted',
-  '3': 'accepted',
-  '4': 'dispatched',
-  '5': 'food_ready',
-  '10': 'delivered',
+  '1':  'accepted',
+  '2':  'rejected',
+  '3':  'food_ready',
+  '4':  'dispatched',
+  '5':  'delivered',
 };
 
 export interface OrderCallbackPayload {

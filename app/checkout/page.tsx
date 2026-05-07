@@ -24,8 +24,8 @@ export default function Checkout() {
     const [selectedFloor, setSelectedFloor]       = useState("");
     const [selectedRoom, setSelectedRoom]         = useState("");
 
-    // Order Type (H = Delivery, P = Takeaway)
-    const [orderType, setOrderType] = useState<"H" | "P">("H");
+    // Order Type (H = Delivery, P = Takeaway) — delivery disabled until live
+    const [orderType, setOrderType] = useState<"H" | "P">("P");
 
     const subtotal = getSubtotal();
     const taxes    = getTax();
@@ -135,12 +135,14 @@ export default function Checkout() {
 
                 {/* Order Type Toggle */}
                 <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl flex gap-1 relative shadow-inner">
+                    {/* Delivery — disabled until service is live */}
                     <button
-                        onClick={() => setOrderType("H")}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm z-10 transition-colors ${orderType === "H" ? "text-slate-800 dark:text-slate-900" : "text-slate-500 dark:text-slate-400"}`}
+                        disabled
+                        className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm z-10 opacity-40 cursor-not-allowed text-slate-500 dark:text-slate-400"
                     >
                         <span className="material-symbols-outlined text-[20px]">moped</span>
                         Delivery
+                        <span className="text-[9px] font-black uppercase tracking-widest bg-orange-400 text-white rounded-full px-1.5 py-0.5 leading-none">Soon</span>
                     </button>
                     <button
                         onClick={() => setOrderType("P")}
