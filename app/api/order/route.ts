@@ -291,8 +291,12 @@ export async function POST(req: NextRequest) {
       latitude:  body.customer.latitude  ?? '',
       longitude: body.customer.longitude ?? '',
     },
-    callbackUrl: process.env.PETPOOJA_CALLBACK_URL
-      ?? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL ?? 'order.thebiryanicanteen.com'}/api/petpooja/callback`,
+    callbackUrl: (() => {
+      const url = process.env.PETPOOJA_CALLBACK_URL
+        ?? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL ?? 'order.thebiryanicanteen.com'}/api/petpooja/callback`;
+      console.log('[order] callback_url sent to Petpooja:', url);
+      return url;
+    })(),
     items:       petpoojaItems,
     taxDetails,
   });
