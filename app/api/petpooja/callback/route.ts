@@ -16,21 +16,38 @@ import { prisma } from '@/lib/prisma';
 import { PETPOOJA_ORDER_STATUS } from '@/services/petpooja/types';
 import type { OrderCallbackPayload } from '@/services/petpooja/types';
 
+const OK = NextResponse.json({ status: '1', message: 'OK' });
+
 export async function POST(req: NextRequest) {
   let body: OrderCallbackPayload;
 
   try {
-    body = await req.json();
+    const contentType = req.headers.get('content-type') ?? '';
+
+    if (contentType.includes('application/x-www-form-urlencoded')) {
+      // Petpooja sends some webhooks as form-encoded.
+      // The payload may be flat fields (orderID=x&status=1) or
+      // JSON wrapped in a single "data" key (same pattern as Push Menu).
+      const text = await req.text();
+      const params = new URLSearchParams(text);
+      const dataParam = params.get('data');
+      if (dataParam) {
+        body = JSON.parse(dataParam);
+      } else {
+        // Flat form fields — convert to object directly
+        body = Object.fromEntries(params.entries()) as unknown as OrderCallbackPayload;
+      }
+    } else {
+      body = await req.json();
+    }
   } catch {
-    // Return 200 even on parse failure — Petpooja must not retry a malformed
-    // payload indefinitely. Log it so we can investigate.
     console.error('[callback] Failed to parse request body');
-    return NextResponse.json({ status: '1', message: 'OK' });
+    return OK;
   }
 
   if (!body.orderID || !body.status) {
     console.warn('[callback] Missing orderID or status', body);
-    return NextResponse.json({ status: '1', message: 'OK' });
+    return OK;
   }
 
   const internalStatus = PETPOOJA_ORDER_STATUS[body.status] ?? 'unknown';
@@ -68,5 +85,5 @@ export async function POST(req: NextRequest) {
     console.error('[callback] DB write failed (order still acked):', err);
   }
 
-  return NextResponse.json({ status: '1', message: 'OK' });
+  return OK;
 }
