@@ -47,6 +47,8 @@ model MenuAddon {
   petpoojaId     String   @unique
   name           String
   price          Float
+  groupId        String   @default("")
+  groupName      String   @default("")
   item           MenuItem @relation(fields: [itemPetpoojaId], references: [petpoojaId])
   itemPetpoojaId String
 }

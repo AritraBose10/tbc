@@ -30,9 +30,15 @@ export interface InputOrderItem {
   quantity: number;
   gst_liability: 'restaurant' | 'thirdparty';
   item_tax: any[];
+  /** Per-item share of the order-level flat discount (rupees) */
+  itemDiscount?: number;
   tax_inclusive: 0 | 1;
   tax_percentage: number;
   addons: any[];
+  /** Petpooja variation ID — required when item has a selected variant */
+  variationId?: string;
+  /** Petpooja variation name matching the selected variant */
+  variationName?: string;
 }
 
 export interface InputTaxDetail {
@@ -224,21 +230,21 @@ export async function saveOrder(
               tax_percentage: Number(tax.price || tax.tax_percentage).toFixed(2),
               amount: Number(tax.tax || tax.amount).toFixed(2)
             })) : [],
-            item_discount: "0", // Map if applicable
+            item_discount: item.itemDiscount != null ? item.itemDiscount.toFixed(2) : "0",
             price: item.price.toFixed(2),
             final_price: item.final_price.toFixed(2),
             quantity: String(item.quantity),
             description: "",
-            variation_name: "",
-            variation_id: "",
+            variation_name: item.variationName ?? "",
+            variation_id: item.variationId ?? "",
             AddonItem: {
               details: Array.isArray(item.addons) ? item.addons.map((a: any) => ({
-                id: String(a.id),
-                name: String(a.name),
-                group_name: "Addons",
-                price: Number(a.price).toFixed(2),
-                group_id: "0",
-                quantity: "1"
+                id:         String(a.id),
+                name:       String(a.name),
+                group_name: String(a.groupName || 'Addons'),
+                price:      Number(a.price).toFixed(2),
+                group_id:   String(a.groupId  || '0'),
+                quantity:   "1"
               })) : []
             }
           }))

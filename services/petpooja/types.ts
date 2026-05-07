@@ -178,6 +178,7 @@ export interface PushMenuAddonItem {
 
 export interface PushMenuAddonGroup {
   addongroupid: string;
+  addongroupname?: string;
   addongroupitems: PushMenuAddonItem[];
 }
 

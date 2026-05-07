@@ -123,19 +123,26 @@ export async function POST(req: NextRequest) {
     for (const item of items) {
       if (!item.itemid || item.itemallowaddon !== '1') continue;
       for (const addonRef of item.addon ?? []) {
-        const groupItems = groupMap.get(addonRef.addon_group_id) ?? [];
+        const group = addonGroups.find(g => g.addongroupid === addonRef.addon_group_id);
+        const groupItems = group?.addongroupitems ?? [];
+        const groupId   = addonRef.addon_group_id;
+        const groupName = group?.addongroupname ?? '';
         for (const addonItem of groupItems) {
           if (!addonItem.addonitemid) continue;
           await prisma.menuAddon.upsert({
             where:  { petpoojaId: addonItem.addonitemid },
             update: {
-              name:  addonItem.addonitem_name,
-              price: parseFloat(addonItem.addonitem_price) || 0,
+              name:      addonItem.addonitem_name,
+              price:     parseFloat(addonItem.addonitem_price) || 0,
+              groupId,
+              groupName,
             },
             create: {
               petpoojaId:     addonItem.addonitemid,
               name:           addonItem.addonitem_name,
               price:          parseFloat(addonItem.addonitem_price) || 0,
+              groupId,
+              groupName,
               itemPetpoojaId: item.itemid,
             },
           });
