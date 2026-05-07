@@ -44,15 +44,29 @@ export async function POST(req: NextRequest) {
   const prepTime = body.minimum_prep_time ? Number(body.minimum_prep_time) : null;
   const deliveryTime = body.minimum_delivery_time ? Number(body.minimum_delivery_time) : null;
 
-  await prisma.orderCallback.create({
-    data: {
-      orderId: body.orderID,
-      status: internalStatus,
-      prepTime: !Number.isNaN(prepTime) ? prepTime : null,
-      deliveryTime: !Number.isNaN(deliveryTime) ? deliveryTime : null,
-      rawJson: JSON.stringify(body),
-    },
-  });
+  // Always ack HTTP 200 first — Petpooja retries on anything else.
+  // Run the DB writes in a try/catch so a transient failure or FK mismatch
+  // never causes us to return 5xx.
+  try {
+    await prisma.$transaction([
+      prisma.orderCallback.create({
+        data: {
+          orderId: body.orderID,
+          status: internalStatus,
+          prepTime: !Number.isNaN(prepTime) ? prepTime : null,
+          deliveryTime: !Number.isNaN(deliveryTime) ? deliveryTime : null,
+          rawJson: JSON.stringify(body),
+        },
+      }),
+      // Keep Order.status in sync so the tracking page has a consistent source of truth
+      prisma.order.updateMany({
+        where: { id: body.orderID },
+        data:  { status: internalStatus },
+      }),
+    ]);
+  } catch (err) {
+    console.error('[callback] DB write failed (order still acked):', err);
+  }
 
   return NextResponse.json({ status: '1', message: 'OK' });
 }

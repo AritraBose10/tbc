@@ -291,7 +291,10 @@ export async function POST(req: NextRequest) {
       latitude:  body.customer.latitude  ?? '',
       longitude: body.customer.longitude ?? '',
     },
-    callbackUrl: process.env.PETPOOJA_CALLBACK_URL ?? '',
+    // PETPOOJA_CALLBACK_URL takes priority; fall back to the Vercel production URL.
+    // Vercel sets VERCEL_PROJECT_PRODUCTION_URL (no scheme) on every deployment.
+    callbackUrl: process.env.PETPOOJA_CALLBACK_URL
+      ?? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL ?? 'tbc-liart.vercel.app'}/api/petpooja/callback`,
     items:       petpoojaItems,
     taxDetails,
   });
