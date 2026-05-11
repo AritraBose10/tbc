@@ -97,9 +97,14 @@ export async function POST(req: NextRequest) {
           if (!variation.id) continue;
           await prisma.menuVariant.upsert({
             where:  { petpoojaId: variation.id },
-            update: { name: variation.name, price: parseFloat(variation.price) || 0 },
+            update: {
+              name:        variation.name,
+              price:       parseFloat(variation.price) || 0,
+              variationId: variation.variationid ?? '',
+            },
             create: {
               petpoojaId:     variation.id,
+              variationId:    variation.variationid ?? '',
               name:           variation.name,
               price:          parseFloat(variation.price) || 0,
               itemPetpoojaId: item.itemid,

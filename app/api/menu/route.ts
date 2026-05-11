@@ -34,6 +34,8 @@ export async function GET() {
         petpoojaId: a.petpoojaId,
         name:       a.name,
         price:      a.price,
+        groupId:    a.groupId,
+        groupName:  a.groupName,
       })),
     };
   });

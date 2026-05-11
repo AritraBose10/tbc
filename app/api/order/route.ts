@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     }),
     prisma.menuVariant.findMany({
       where: { petpoojaId: { in: inboundIds } },
-      select: { petpoojaId: true, name: true, itemPetpoojaId: true, price: true, item: { select: { name: true } } },
+      select: { petpoojaId: true, variationId: true, name: true, itemPetpoojaId: true, price: true, item: { select: { name: true } } },
     }),
   ]);
   const knownIds = new Set([
@@ -144,15 +144,15 @@ export async function POST(req: NextRequest) {
     let variationId: string | undefined;
     let variationName: string | undefined;
 
-    // When the cart sends a variant's petpoojaId:
-    //   • item.id in the Save Order payload → parent item's petpoojaId
-    //   • variation_id                      → variant's petpoojaId
+    // When the cart sends a variant's petpoojaId (= variation.id from Push Menu):
+    //   • order item id   → variation.id      (variant.petpoojaId)
+    //   • variation_id    → variation.variationid (variant.variationId)
     if (variantIdSet.has(item.petpoojaId)) {
       const variant = variantMap.get(item.petpoojaId);
       if (variant) {
-        itemId        = variant.itemPetpoojaId;   // parent item ID for Petpooja
+        itemId        = variant.petpoojaId;                             // variation.id
         unitPrice     = variant.price;
-        variationId   = variant.petpoojaId;       // variant ID
+        variationId   = variant.variationId || undefined;               // variation.variationid
         variationName = variant.name;
       }
     }

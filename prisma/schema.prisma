@@ -35,7 +35,8 @@ model MenuItem {
 
 model MenuVariant {
   id             Int      @id @default(autoincrement())
-  petpoojaId     String   @unique
+  petpoojaId     String   @unique  // variation.id  → used as order item id
+  variationId    String   @default("")  // variation.variationid → used as variation_id in order
   name           String
   price          Float
   item           MenuItem @relation(fields: [itemPetpoojaId], references: [petpoojaId])

@@ -146,7 +146,8 @@ export interface SaveOrderResponse {
 // Payload structure matches Petpooja Integration Guide (confirmed field names).
 
 export interface PushMenuVariation {
-  id: string;       // variation.id — NOT variationid
+  id: string;           // item ID — sent as order item id when a variation is selected
+  variationid: string;  // variation ID — sent as variation_id in the order payload
   name: string;
   price: string;
 }
