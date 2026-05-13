@@ -64,7 +64,12 @@ export default function LoginForm({ nextUrl }: { nextUrl: string }) {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error ?? "Verification failed");
-            router.push(nextUrl);
+            // New users (no name/phone yet) must complete their profile first
+            const profileIncomplete = !data.user.name || !data.user.phone;
+            const dest = profileIncomplete
+                ? `/complete-profile?next=${encodeURIComponent(nextUrl)}`
+                : nextUrl;
+            router.push(dest);
             router.refresh();
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Something went wrong");

@@ -6,7 +6,7 @@ export async function proxy(req: NextRequest) {
   const user = await getAuthUserFromRequest(req);
 
   // Unauthenticated user trying to reach a protected page
-  if (pathname.startsWith("/profile") && !user) {
+  if ((pathname.startsWith("/profile") || pathname === "/complete-profile") && !user) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
@@ -24,5 +24,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/profile/:path*", "/login"],
+  matcher: ["/profile/:path*", "/login", "/complete-profile"],
 };
