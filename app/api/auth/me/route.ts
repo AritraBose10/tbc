@@ -14,26 +14,26 @@ export async function GET() {
       return NextResponse.json({ user: null }, { status: 401 });
     }
 
-    // Aggregate order stats by phone (if user has linked their phone)
-    let orderCount = 0;
-    let totalSpent = 0;
-    let recentOrders: { id: string; status: string; totalAmount: number; createdAt: Date; items: { name: string; quantity: number }[] }[] = [];
+    // Match orders by userId OR phone so orders placed before phone was linked are included
+    const orderWhere = {
+      OR: [
+        { userId: user.id },
+        ...(user.phone ? [{ customerPhone: user.phone }] : []),
+      ],
+    };
 
-    if (user.phone) {
-      const orders = await prisma.order.findMany({
-        where: { customerPhone: user.phone },
+    const [recentOrders, orderCount, spent] = await Promise.all([
+      prisma.order.findMany({
+        where: orderWhere,
         orderBy: { createdAt: "desc" },
         take: 5,
         include: { items: { select: { name: true, quantity: true } } },
-      });
-      orderCount = await prisma.order.count({ where: { customerPhone: user.phone } });
-      const spent = await prisma.order.aggregate({
-        where: { customerPhone: user.phone },
-        _sum: { totalAmount: true },
-      });
-      totalSpent = spent._sum.totalAmount ?? 0;
-      recentOrders = orders;
-    }
+      }),
+      prisma.order.count({ where: orderWhere }),
+      prisma.order.aggregate({ where: orderWhere, _sum: { totalAmount: true } }),
+    ]);
+
+    const totalSpent = spent._sum.totalAmount ?? 0;
 
     return NextResponse.json({
       user: {

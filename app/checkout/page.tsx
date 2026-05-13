@@ -2,7 +2,7 @@
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
 import { PREDESTINED_LOCATIONS } from "@/constants/locations";
@@ -26,6 +26,19 @@ export default function Checkout() {
 
     // Order Type (H = Delivery, P = Takeaway) — delivery disabled until live
     const [orderType, setOrderType] = useState<"H" | "P">("P");
+
+    // Pre-fill name and phone from profile if the user is signed in
+    useEffect(() => {
+        fetch("/api/auth/me")
+            .then((r) => r.ok ? r.json() : null)
+            .then((data) => {
+                if (!data?.user) return;
+                if (!customerName && data.user.name)  setCustomerName(data.user.name);
+                if (!customerPhone && data.user.phone) setCustomerPhone(data.user.phone);
+            })
+            .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const subtotal = getSubtotal();
     const taxes    = getTax();

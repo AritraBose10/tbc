@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { saveOrder, type InputOrderItem, type InputTaxDetail } from '@/services/petpooja/save-order';
+import { getAuthUserFromRequest } from '@/lib/auth';
 
 interface InboundAddon {
   petpoojaId: string;
@@ -41,6 +42,8 @@ interface OrderRequest {
 }
 
 export async function POST(req: NextRequest) {
+  const authUser = await getAuthUserFromRequest(req);
+
   let body: OrderRequest;
   try {
     body = await req.json();
@@ -318,6 +321,7 @@ export async function POST(req: NextRequest) {
       totalAmount:     total,
       orderType:       body.orderType,
       tokenNumber:     isTakeaway ? tokenNumber : null,
+      userId:          authUser?.userId ?? null,
       items: {
         create: petpoojaItems.map((item) => ({
           name:     item.name,

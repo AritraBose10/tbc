@@ -81,19 +81,24 @@ model OrderCallback {
 }
 
 model Order {
-  id              String          @id // Unique ID (e.g. tbc-...)
+  id              String          @id
   customerName    String
   customerPhone   String
   customerAddress String
   totalAmount     Float
-  status          String          @default("pending") // Overall status derived from callbacks
-  orderType       String          @default("H")       // "H" = Delivery, "P" = Takeaway
-  tokenNumber     String?                             // E.g. "4829"
+  status          String          @default("pending")
+  orderType       String          @default("H")
+  tokenNumber     String?
+  userId          String?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
+  user            User?           @relation(fields: [userId], references: [id])
   items           OrderItem[]
   callbacks       OrderCallback[]
+
+  @@index([userId])
+  @@index([customerPhone])
 }
 
 model OrderItem {
@@ -114,6 +119,7 @@ model User {
   phone     String   @default("")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  orders    Order[]
 }
 
 model OtpSession {
