@@ -24,17 +24,12 @@ export async function POST(req: NextRequest) {
       body = await req.json();
     }
   } catch {
-    return NextResponse.json(
-      { status: '0', message: 'Invalid request body' },
-      { status: 400 },
-    );
+    // Always return HTTP 200 — Petpooja retries indefinitely on non-200 responses.
+    return NextResponse.json({ status: '0', message: 'Invalid request body' });
   }
 
   if (!body.item_id) {
-    return NextResponse.json(
-      { status: '0', message: 'Missing item_id' },
-      { status: 400 },
-    );
+    return NextResponse.json({ status: '0', message: 'Missing item_id' });
   }
 
   const isAvailable = body.active !== '0';
