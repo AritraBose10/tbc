@@ -175,6 +175,15 @@ export async function POST(req: NextRequest) {
       taxCount++;
     }
 
+    // Mark items no longer present in the push as unavailable
+    const incomingIds = items.map((i) => i.itemid).filter(Boolean);
+    if (incomingIds.length > 0) {
+      await prisma.menuItem.updateMany({
+        where: { petpoojaId: { notIn: incomingIds } },
+        data:  { isAvailable: false },
+      });
+    }
+
     console.log(`[pushmenu] items=${itemCount} taxes=${taxCount}`);
   } catch (err) {
     // Log but never return 4xx/5xx — Petpooja would retry indefinitely

@@ -55,6 +55,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // ── Reject orders when store is closed ────────────────────────────────────
+  const storeConfig = await prisma.petpoojaConfig.findUnique({ where: { key: 'storeOpen' } });
+  if (storeConfig?.value !== '1') {
+    return NextResponse.json(
+      { success: false, error: 'Store is currently closed. Please try again later.' },
+      { status: 400 },
+    );
+  }
+
   // ── Validate all item IDs exist in MenuItem OR MenuVariant ───────────────
   const inboundIds = body.items.map((i) => i.petpoojaId);
   const [knownItems, knownVariants] = await Promise.all([
@@ -249,26 +258,6 @@ export async function POST(req: NextRequest) {
   const prefix      = isTakeaway ? `T${day}` : `D${day}`;
   const orderID     = `${prefix}-${tokenNumber}`;
 
-  // Persist order in our local database first
-  await prisma.order.create({
-    data: {
-      id:              orderID,
-      customerName:    body.customer.name,
-      customerPhone:   body.customer.mobile,
-      customerAddress: body.customer.address,
-      totalAmount:     total,
-      orderType:       body.orderType,
-      tokenNumber:     isTakeaway ? tokenNumber : null,
-      items: {
-        create: petpoojaItems.map((item) => ({
-          name:     item.name,
-          quantity: item.quantity,
-          price:    item.price,
-        })),
-      },
-    },
-  });
-
   // ── Call saveOrder service ─────────────────────────────────────────────────
   const result = await saveOrder({
     orderID,
@@ -318,6 +307,27 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
+
+  // ── Persist order only after Petpooja confirms ─────────────────────────────
+  await prisma.order.create({
+    data: {
+      id:              orderID,
+      customerName:    body.customer.name,
+      customerPhone:   body.customer.mobile,
+      customerAddress: body.customer.address,
+      totalAmount:     total,
+      orderType:       body.orderType,
+      tokenNumber:     isTakeaway ? tokenNumber : null,
+      items: {
+        create: petpoojaItems.map((item) => ({
+          name:     item.name,
+          quantity: item.quantity,
+          price:    item.price,
+          addons:   JSON.stringify((item.addons ?? []).map((a) => ({ name: a.name, price: a.price }))),
+        })),
+      },
+    },
+  });
 
   return NextResponse.json({
     success:         true,

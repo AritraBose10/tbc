@@ -14,10 +14,18 @@ export async function POST(req: NextRequest) {
   let body: StoreStatusPayload;
 
   try {
-    body = await req.json();
+    const contentType = req.headers.get('content-type') ?? '';
+    if (contentType.includes('application/x-www-form-urlencoded')) {
+      const text = await req.text();
+      const params = new URLSearchParams(text);
+      const dataParam = params.get('data');
+      body = dataParam ? JSON.parse(dataParam) : Object.fromEntries(params.entries()) as unknown as StoreStatusPayload;
+    } else {
+      body = await req.json();
+    }
   } catch {
     return NextResponse.json(
-      { status: '0', message: 'Invalid JSON body' },
+      { status: '0', message: 'Invalid request body' },
       { status: 400 },
     );
   }
@@ -29,7 +37,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const isOpen = body.is_open !== '0';
+  const isOpen = body.is_open === '1';
 
   await prisma.petpoojaConfig.upsert({
     where: { key: 'storeOpen' },

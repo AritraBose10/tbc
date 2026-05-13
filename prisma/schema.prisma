@@ -100,8 +100,29 @@ model OrderItem {
   id        Int     @id @default(autoincrement())
   orderId   String
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
+
   name      String
   quantity  Int
-  price     Float   // Price at the time of order
+  price     Float   // Base unit price at time of order (excluding addons)
+  addons    String  @default("[]") // JSON: [{name, price}]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String   @default("")
+  email     String   @unique
+  phone     String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OtpSession {
+  id        String   @id @default(cuid())
+  email     String
+  otp       String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([email])
 }

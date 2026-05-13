@@ -108,9 +108,14 @@ export default function Cart() {
                                         <h3 className="font-bold text-slate-800 dark:text-slate-200 leading-tight text-sm">
                                             {item.name}
                                         </h3>
+                                        {item.addons && item.addons.length > 0 && (
+                                            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 leading-snug">
+                                                {item.addons.map((a) => a.name).join(", ")}
+                                            </p>
+                                        )}
                                         <div className="flex items-center justify-between mt-2">
                                             <span className="font-black text-terracotta text-base">
-                                                ₹{(item.price * item.quantity).toFixed(0)}
+                                                ₹{((item.price + (item.addons ?? []).reduce((s, a) => s + a.price, 0)) * item.quantity).toFixed(0)}
                                             </span>
                                             <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 rounded-full px-2 py-1.5">
                                                 <motion.button

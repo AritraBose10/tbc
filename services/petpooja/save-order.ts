@@ -9,7 +9,6 @@
 //   • advanced_order is derived from whether preorder fields are provided
 // ---------------------------------------------------------------------------
 
-import { prisma } from '@/lib/prisma';
 import { petpoojaPost, getPetpoojaAuth, PetpoojaError } from './client';
 import type {
   SaveOrderRequest,
@@ -124,26 +123,16 @@ export type SaveOrderResult =
 export async function saveOrder(
   input: SaveOrderInput,
 ): Promise<SaveOrderResult> {
-  // Fetch the menu sharing code from DB — this is what the API doc calls "restID".
-  // The Push Menu webhook stores it as 'restaurantId' (the alphanumeric code like "A409632R"),
-  // NOT 'restID' which is the numeric internal ID ("4341").
-  const configRow = await prisma.petpoojaConfig.findUnique({
-    where: { key: 'restaurantId' },
-  });
-
-  const restID = configRow?.value || process.env.PETPOOJA_REST_ID;
-
-  if (!restID) {
+  // PETPOOJA_REST_MAP_ID is the alphanumeric restID confirmed working with Petpooja's save_order API.
+  const restMapID = process.env.PETPOOJA_REST_MAP_ID;
+  if (!restMapID) {
     return {
       success: false,
-      error:
-        'restaurantId not found in DB or PETPOOJA_REST_ID env var. The Push Menu webhook must be received before orders can be placed.',
+      error: 'PETPOOJA_REST_MAP_ID env var is not set. Cannot place order.',
     };
   }
 
   const auth = getPetpoojaAuth();
-
-  const restMapID = process.env.PETPOOJA_REST_MAP_ID ?? 'sikue9cb';
 
   // Mathematical Reconciliation Check
   const serviceCharge = input.serviceCharge || 0;
@@ -215,7 +204,7 @@ export async function saveOrder(
             description: "",
             created_on: createdOn,
             enable_delivery: input.enableDelivery,
-            min_prep_time: 20,
+            min_prep_time: parseInt(process.env.PETPOOJA_MIN_PREP_TIME ?? '20', 10),
             callback_url: input.callbackUrl
           }
         },
@@ -231,23 +220,20 @@ export async function saveOrder(
               tax_percentage: Number(tax.price || tax.tax_percentage).toFixed(2),
               amount: Number(tax.tax || tax.amount).toFixed(2)
             })) : [],
-            item_discount: item.itemDiscount != null ? item.itemDiscount.toFixed(2) : "0",
+            item_discount: item.itemDiscount ? item.itemDiscount.toFixed(2) : "",
             price: item.price.toFixed(2),
             final_price: item.final_price.toFixed(2),
             quantity: String(item.quantity),
             description: "",
             variation_name: item.variationName ?? "",
             variation_id: item.variationId ?? "",
-            AddonItem: {
-              details: Array.isArray(item.addons) ? item.addons.map((a: any) => ({
-                id:         String(a.id),
-                name:       String(a.name),
-                group_name: String(a.groupName || 'Addons'),
-                price:      Number(a.price).toFixed(2),
-                group_id:   String(a.groupId  || '0'),
-                quantity:   "1"
-              })) : []
-            }
+            tax_percentage: item.tax_percentage.toFixed(2),
+            addon_items: Array.isArray(item.addons) ? item.addons.map((a: any) => ({
+              id:       String(a.id),
+              name:     String(a.name),
+              price:    Number(a.price).toFixed(2),
+              quantity: "1"
+            })) : []
           }))
         },
         Tax: {
@@ -260,9 +246,6 @@ export async function saveOrder(
             restaurant_liable_amt: tax.restaurant_liable_amt.toFixed(2)
           }))
         },
-        Discount: {
-          details: []
-        }
       },
       udid: "",
       device_type: "Web"

@@ -26,9 +26,7 @@ export type GstLiability = 'restaurant' | 'thirdparty';
 export interface PetpoojaAddon {
   id: string;
   name: string;
-  group_name: string;
   price: string;
-  group_id: string;
   quantity: string;
 }
 
@@ -52,9 +50,8 @@ export interface PetpoojaOrderItem {
   description: string;
   variation_name: string;
   variation_id: string;
-  AddonItem: {
-    details: PetpoojaAddon[];
-  };
+  tax_percentage: string;
+  addon_items: PetpoojaAddon[];
 }
 
 export interface PetpoojaTaxDetail {
@@ -124,7 +121,7 @@ export interface SaveOrderRequest extends PetpoojaAuth {
       Tax: {
         details: PetpoojaTaxDetail[];
       };
-      Discount: {
+      Discount?: {
         details: any[];
       };
     };

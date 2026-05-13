@@ -14,10 +14,18 @@ export async function POST(req: NextRequest) {
   let body: ItemStatusPayload;
 
   try {
-    body = await req.json();
+    const contentType = req.headers.get('content-type') ?? '';
+    if (contentType.includes('application/x-www-form-urlencoded')) {
+      const text = await req.text();
+      const params = new URLSearchParams(text);
+      const dataParam = params.get('data');
+      body = dataParam ? JSON.parse(dataParam) : Object.fromEntries(params.entries()) as unknown as ItemStatusPayload;
+    } else {
+      body = await req.json();
+    }
   } catch {
     return NextResponse.json(
-      { status: '0', message: 'Invalid JSON body' },
+      { status: '0', message: 'Invalid request body' },
       { status: 400 },
     );
   }

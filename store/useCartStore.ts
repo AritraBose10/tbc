@@ -1,6 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+export interface CartAddon {
+    petpoojaId: string;
+    name: string;
+    price: number;
+    groupId: string;
+    groupName: string;
+}
+
 export interface CartItem {
     id: string;
     name: string;
@@ -10,6 +18,7 @@ export interface CartItem {
     category?: string;
     isVeg?: boolean;
     portion?: string;
+    addons?: CartAddon[];
 }
 
 interface CartStore {
@@ -69,7 +78,10 @@ export const useCartStore = create<CartStore>()(
                 get().items.reduce((total, item) => total + item.quantity, 0),
 
             getSubtotal: () =>
-                get().items.reduce((total, item) => total + item.price * item.quantity, 0),
+                get().items.reduce((total, item) => {
+                    const addonSum = (item.addons ?? []).reduce((s, a) => s + a.price, 0);
+                    return total + (item.price + addonSum) * item.quantity;
+                }, 0),
 
             getTax: () => get().getSubtotal() * 0.05,
 

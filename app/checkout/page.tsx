@@ -83,10 +83,15 @@ export default function Checkout() {
                         longitude: "",
                     },
                     items: items.map((item) => ({
-                        petpoojaId: item.id,   // already a real Petpooja itemid from live menu
+                        petpoojaId: item.id,
                         name:       item.name,
                         price:      item.price,
                         quantity:   item.quantity,
+                        addons:     (item.addons ?? []).map((a) => ({
+                            petpoojaId: a.petpoojaId,
+                            name:       a.name,
+                            price:      a.price,
+                        })),
                     })),
                     paymentType: "COD",
                     orderType:   orderType,
@@ -312,7 +317,7 @@ export default function Checkout() {
                                     </p>
                                 </div>
                                 <p className="font-bold text-sm text-slate-800 dark:text-slate-200 shrink-0 ml-2">
-                                    &#8377;{(item.price * item.quantity).toFixed(0)}
+                                    &#8377;{((item.price + (item.addons ?? []).reduce((s, a) => s + a.price, 0)) * item.quantity).toFixed(0)}
                                 </p>
                             </div>
                         ))}

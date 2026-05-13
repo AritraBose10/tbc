@@ -10,6 +10,8 @@ import { useVegStore } from "@/store/useVegStore";
 
 type LiveMenuVariant = { petpoojaId: string; name: string; price: number };
 
+type LiveMenuAddon = { petpoojaId: string; name: string; price: number; groupId: string; groupName: string };
+
 type LiveMenuItem = {
     petpoojaId:   string;
     name:         string;
@@ -17,7 +19,7 @@ type LiveMenuItem = {
     categoryName: string;
     isVeg:        boolean;
     variants:     LiveMenuVariant[];
-    addons:       { petpoojaId: string; name: string; price: number }[];
+    addons:       LiveMenuAddon[];
 };
 
 // An item is variant-only when the parent price is 0 and has variants.
@@ -35,6 +37,8 @@ function MenuContent() {
     const [menuItems, setMenuItems]             = useState<LiveMenuItem[]>([]);
     const [loading, setLoading]                 = useState(true);
     const [variantPickerItem, setVariantPickerItem] = useState<LiveMenuItem | null>(null);
+    const [addonPickerItem, setAddonPickerItem]     = useState<LiveMenuItem | null>(null);
+    const [selectedAddons, setSelectedAddons]       = useState<Set<string>>(new Set());
 
     const { items: cartItems, addItem, updateQuantity } = useCartStore();
     const { isVeg: isVegOnly } = useVegStore();
@@ -196,15 +200,20 @@ function MenuContent() {
                                         /* Plain item — not in cart yet */
                                         <motion.button
                                             whileTap={{ scale: 0.9 }}
-                                            onClick={() =>
-                                                addItem({
-                                                    id:       item.petpoojaId,
-                                                    name:     item.name,
-                                                    price:    item.price,
-                                                    category: item.categoryName,
-                                                    isVeg:    item.isVeg,
-                                                })
-                                            }
+                                            onClick={() => {
+                                                if (item.addons.length > 0) {
+                                                    setSelectedAddons(new Set());
+                                                    setAddonPickerItem(item);
+                                                } else {
+                                                    addItem({
+                                                        id:       item.petpoojaId,
+                                                        name:     item.name,
+                                                        price:    item.price,
+                                                        category: item.categoryName,
+                                                        isVeg:    item.isVeg,
+                                                    });
+                                                }
+                                            }}
                                             className="h-10 px-4 bg-primary/10 dark:bg-primary/5 text-royal-blue dark:text-primary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all border border-primary/20"
                                         >
                                             Add +
@@ -250,6 +259,94 @@ function MenuContent() {
             </div>
 
             <BottomNav />
+
+            {/* ── Addon picker bottom sheet ──────────────────────────────── */}
+            <AnimatePresence>
+                {addonPickerItem && (
+                    <>
+                        <motion.div
+                            key="addon-scrim"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-40 bg-black/40"
+                            onClick={() => setAddonPickerItem(null)}
+                        />
+                        <motion.div
+                            key="addon-sheet"
+                            initial={{ y: "100%" }}
+                            animate={{ y: 0 }}
+                            exit={{ y: "100%" }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 rounded-t-3xl px-5 pt-5 pb-10 shadow-2xl"
+                        >
+                            <div className="w-10 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-5" />
+                            <h3 className="text-base font-black text-slate-800 dark:text-white mb-1">
+                                {addonPickerItem.name}
+                            </h3>
+                            <p className="text-xs text-slate-400 font-medium mb-5">
+                                Customise your order
+                            </p>
+
+                            <div className="space-y-3 mb-6">
+                                {addonPickerItem.addons.map((addon) => {
+                                    const checked = selectedAddons.has(addon.petpoojaId);
+                                    return (
+                                        <button
+                                            key={addon.petpoojaId}
+                                            onClick={() => {
+                                                setSelectedAddons((prev) => {
+                                                    const next = new Set(prev);
+                                                    checked ? next.delete(addon.petpoojaId) : next.add(addon.petpoojaId);
+                                                    return next;
+                                                });
+                                            }}
+                                            className={`w-full flex items-center justify-between rounded-2xl px-4 py-3 transition-all border ${
+                                                checked
+                                                    ? "bg-primary/10 border-primary/40 dark:bg-primary/20"
+                                                    : "bg-slate-50 border-transparent dark:bg-slate-800"
+                                            }`}
+                                        >
+                                            <div className="text-left">
+                                                <p className="font-bold text-sm text-slate-800 dark:text-slate-200">{addon.name}</p>
+                                                {addon.price > 0 && (
+                                                    <p className="text-xs font-black text-royal-blue dark:text-primary">+₹{addon.price}</p>
+                                                )}
+                                            </div>
+                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                                                checked ? "bg-primary border-primary" : "border-slate-300 dark:border-slate-600"
+                                            }`}>
+                                                {checked && <span className="material-symbols-outlined text-white text-xs">check</span>}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <motion.button
+                                whileTap={{ scale: 0.97 }}
+                                onClick={() => {
+                                    const pickedAddons = addonPickerItem.addons.filter((a) =>
+                                        selectedAddons.has(a.petpoojaId)
+                                    );
+                                    addItem({
+                                        id:       addonPickerItem.petpoojaId,
+                                        name:     addonPickerItem.name,
+                                        price:    addonPickerItem.price,
+                                        category: addonPickerItem.categoryName,
+                                        isVeg:    addonPickerItem.isVeg,
+                                        addons:   pickedAddons,
+                                    });
+                                    setAddonPickerItem(null);
+                                }}
+                                className="w-full py-3.5 bg-royal-blue text-white font-black rounded-2xl text-sm uppercase tracking-widest"
+                            >
+                                Add to Cart
+                            </motion.button>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
 
             {/* ── Variant picker bottom sheet ────────────────────────────── */}
             <AnimatePresence>
