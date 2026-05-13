@@ -200,21 +200,23 @@ export default function TrackOrder() {
                     <div className="border-t border-gray-100 dark:border-gray-800 pt-8">
                         <h3 className="font-bold text-gray-900 dark:text-white mb-4">Bill Details</h3>
                         <div className="space-y-3 mb-4">
-                            {order.items.map((item, i) => {
-                                const addonTotal = item.addons.reduce((s, a) => s + a.price, 0);
-                                return (
-                                    <div key={i} className="flex justify-between items-start text-sm">
-                                        <div className="flex gap-2 flex-1 min-w-0">
-                                            <span className="text-gray-700 dark:text-gray-300 shrink-0">
-                                                {item.name} <span className="text-gray-400">x{item.quantity}</span>
-                                            </span>
-                                        </div>
-                                        <span className="font-medium text-gray-900 dark:text-white shrink-0 ml-2">
-                                            ₹{((item.price + addonTotal) * item.quantity).toFixed(0)}
+                            {order.items.map((item, i) => (
+                                <div key={i} className="flex justify-between items-start text-sm">
+                                    <div className="flex flex-col flex-1 min-w-0 gap-0.5">
+                                        <span className="text-gray-700 dark:text-gray-300">
+                                            {item.name} <span className="text-gray-400">x{item.quantity}</span>
                                         </span>
+                                        {item.addons.length > 0 && (
+                                            <span className="text-[11px] text-gray-400">
+                                                {item.addons.map((a) => a.name).join(", ")}
+                                            </span>
+                                        )}
                                     </div>
-                                );
-                            })}
+                                    <span className="font-medium text-gray-900 dark:text-white shrink-0 ml-2">
+                                        ₹{(item.price * item.quantity).toFixed(0)}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
                         <div className="border-t border-dashed border-gray-200 dark:border-gray-700 pt-4 flex justify-between items-center">
                             <span className="font-bold text-gray-900 dark:text-white">Total</span>
