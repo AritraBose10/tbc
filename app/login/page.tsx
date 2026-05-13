@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -8,10 +8,19 @@ import Link from "next/link";
 type Step = "email" | "otp";
 
 export default function LoginPage() {
+    return (
+        <Suspense>
+            <LoginForm />
+        </Suspense>
+    );
+}
+
+function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const nextUrl = searchParams.get("next") ?? "/profile";
 
+    const [authChecking, setAuthChecking] = useState(true);
     const [step, setStep] = useState<Step>("email");
     const [email, setEmail] = useState("");
     const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -20,6 +29,17 @@ export default function LoginPage() {
     const [resendTimer, setResendTimer] = useState(0);
 
     const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+    // Redirect away if already signed in
+    useEffect(() => {
+        fetch("/api/auth/me")
+            .then((res) => {
+                if (res.ok) router.replace(nextUrl);
+                else setAuthChecking(false);
+            })
+            .catch(() => setAuthChecking(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (resendTimer <= 0) return;
@@ -126,6 +146,14 @@ export default function LoginPage() {
         } finally {
             setLoading(false);
         }
+    }
+
+    if (authChecking) {
+        return (
+            <main className="min-h-screen bg-[#FFFDF0] dark:bg-background-dark flex items-center justify-center mughal-pattern">
+                <span className="material-symbols-outlined text-4xl text-primary animate-spin">progress_activity</span>
+            </main>
+        );
     }
 
     return (

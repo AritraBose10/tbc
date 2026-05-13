@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendOtpEmail } from "@/lib/email";
+import { hashOtp } from "@/lib/otp";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 function generateOtp(): string {
   return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function getClientIp(req: NextRequest): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip") ??
+    "unknown"
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -15,27 +25,42 @@ export async function POST(req: NextRequest) {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
+    const ip = getClientIp(req);
 
-    // Rate limit: max 3 OTP requests per 15 minutes
-    const since = new Date(Date.now() - 15 * 60 * 1000);
-    const recentCount = await prisma.otpSession.count({
-      where: { email: normalizedEmail, createdAt: { gte: since } },
-    });
-    if (recentCount >= 3) {
+    // IP rate limit: 10 requests per 15 minutes across all emails from same IP
+    const ipCheck = await checkRateLimit(
+      `otp:ip:${ip}`,
+      10,
+      15 * 60 * 1000
+    );
+    if (!ipCheck.allowed) {
       return NextResponse.json(
-        { error: "Too many requests. Please wait 15 minutes before trying again." },
+        { error: "Too many requests from this device. Please try again later." },
         { status: 429 }
       );
     }
 
-    // Delete old OTP sessions for this email
+    // Email rate limit: 3 OTPs per 15 minutes for this email address
+    const emailCheck = await checkRateLimit(
+      `otp:email:${normalizedEmail}`,
+      3,
+      15 * 60 * 1000
+    );
+    if (!emailCheck.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests for this email. Please wait 15 minutes." },
+        { status: 429 }
+      );
+    }
+
+    // Invalidate any existing OTP session for this email
     await prisma.otpSession.deleteMany({ where: { email: normalizedEmail } });
 
     const otp = generateOtp();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     await prisma.otpSession.create({
-      data: { email: normalizedEmail, otp, expiresAt },
+      data: { email: normalizedEmail, otp: hashOtp(otp), expiresAt },
     });
 
     await sendOtpEmail(normalizedEmail, otp);

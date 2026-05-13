@@ -126,3 +126,11 @@ model OtpSession {
 
   @@index([email])
 }
+
+// Sliding-window rate limit counters. One row per key (e.g. "otp:ip:1.2.3.4").
+model RateLimit {
+  key       String   @id
+  count     Int      @default(0)
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { signToken, AUTH_COOKIE } from "@/lib/auth";
+import { verifyOtp } from "@/lib/otp";
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Too many incorrect attempts. Please request a new OTP." }, { status: 400 });
     }
 
-    if (session.otp !== otp.trim()) {
+    if (!verifyOtp(otp.trim(), session.otp)) {
       await prisma.otpSession.update({
         where: { id: session.id },
         data: { attempts: session.attempts + 1 },

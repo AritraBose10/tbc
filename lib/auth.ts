@@ -2,9 +2,11 @@ import { JWTPayload, SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 
-const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "tbc-fallback-secret"
-);
+function getSecret(): Uint8Array {
+  const s = process.env.JWT_SECRET;
+  if (!s) throw new Error("JWT_SECRET environment variable is not set");
+  return new TextEncoder().encode(s);
+}
 
 export const AUTH_COOKIE = "tbc-auth";
 
@@ -18,12 +20,12 @@ export async function signToken(payload: TokenPayload): Promise<string> {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("30d")
-    .sign(secret);
+    .sign(getSecret());
 }
 
 export async function verifyToken(token: string): Promise<TokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, getSecret());
     return payload as unknown as TokenPayload;
   } catch {
     return null;
