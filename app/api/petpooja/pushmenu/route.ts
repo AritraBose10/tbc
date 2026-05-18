@@ -80,6 +80,7 @@ export async function POST(req: NextRequest) {
           categoryId:   item.item_categoryid ?? '',
           categoryName,
           rawJson:      JSON.stringify(item),
+          isAvailable:  true,
         },
         create: {
           petpoojaId:   item.itemid,

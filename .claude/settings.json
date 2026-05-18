@@ -22,7 +22,8 @@
       "Bash(npx tsx --env-file=.env.sandbox -e ' *)",
       "Bash(node scripts/run-test-scenarios.mjs)",
       "mcp__claude_ai_Gmail__search_threads",
-      "Bash(curl -s \"http://localhost:3000/api/order-status/T13-8268\")"
+      "Bash(curl -s \"http://localhost:3000/api/order-status/T13-8268\")",
+      "Bash(vercel ls *)"
     ]
   }
 }
