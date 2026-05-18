@@ -61,11 +61,6 @@ export async function POST(req: NextRequest) {
 
     // STEP 3 — Upsert items from body.items[]
     const items: PushMenuItem[] = body.items ?? [];
-    console.log(`[pushmenu] payload keys=${Object.keys(body).join(',')}`);
-    console.log(`[pushmenu] items in payload=${items.length}, categories=${menuCategories.length}`);
-    if (items.length === 0) {
-      console.warn('[pushmenu] WARNING: items array is empty — full payload keys:', JSON.stringify(Object.keys(body)));
-    }
     let itemCount = 0;
 
     for (const item of items) {
