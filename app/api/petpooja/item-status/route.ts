@@ -28,14 +28,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: '0', message: 'Invalid request body' });
   }
 
-  if (!body.item_id) {
+  // Petpooja POS sends itemID (array) + inStock (boolean); the integration guide
+  // documents item_id (string) + active ('0'/'1'). Support both formats.
+  const bodyRaw = body as unknown as Record<string, unknown>;
+  const rawId = bodyRaw.itemID ?? body.item_id;
+  const itemIds: string[] = Array.isArray(rawId)
+    ? rawId.map(String)
+    : rawId
+    ? [String(rawId)]
+    : [];
+
+  if (itemIds.length === 0) {
     return NextResponse.json({ status: '0', message: 'Missing item_id' });
   }
 
-  const isAvailable = body.active !== '0';
+  const rawInStock = bodyRaw.inStock;
+  const isAvailable =
+    rawInStock !== undefined ? Boolean(rawInStock) : body.active !== '0';
 
   const updated = await prisma.menuItem.updateMany({
-    where: { petpoojaId: body.item_id },
+    where: { petpoojaId: { in: itemIds } },
     data: { isAvailable },
   });
 
@@ -43,11 +55,11 @@ export async function POST(req: NextRequest) {
     // Item not yet in our DB — possible if the toggle fires before Push Menu.
     // Not fatal: log a warning and return 200 so Petpooja doesn't retry endlessly.
     console.warn(
-      `[item-status] item_id=${body.item_id} not found in DB — Push Menu may not have fired yet`,
+      `[item-status] item_ids=${itemIds.join(',')} not found in DB — Push Menu may not have fired yet`,
     );
   } else {
     console.log(
-      `[item-status] item_id=${body.item_id} isAvailable=${isAvailable}`,
+      `[item-status] item_ids=${itemIds.join(',')} isAvailable=${isAvailable}`,
     );
   }
 
