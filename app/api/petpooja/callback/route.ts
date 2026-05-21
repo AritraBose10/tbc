@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PETPOOJA_ORDER_STATUS } from '@/services/petpooja/types';
 
-const OK = NextResponse.json({ status: '1', message: 'OK' });
+const OK = NextResponse.json({ status: '1', message: 'OK', http_code: 200, error: '' });
 
 export async function POST(req: NextRequest) {
   // Read raw body first so we can log exactly what Petpooja sent.

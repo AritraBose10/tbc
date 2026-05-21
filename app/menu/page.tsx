@@ -51,11 +51,19 @@ function MenuContent() {
     }, [categoryParam, searchParams]);
 
     useEffect(() => {
-        fetch("/api/menu")
-            .then((r) => r.json())
-            .then((data: LiveMenuItem[]) => setMenuItems(data))
-            .catch(() => setMenuItems([]))
-            .finally(() => setLoading(false));
+        const es = new EventSource("/api/menu/events");
+
+        es.addEventListener("menu", (e) => {
+            try {
+                setMenuItems(JSON.parse(e.data) as LiveMenuItem[]);
+            } catch {
+                // malformed event — ignore
+            }
+            setLoading(false);
+        });
+
+        // EventSource reconnects automatically on network drop
+        return () => es.close();
     }, []);
 
     const categories = useMemo(() => {
