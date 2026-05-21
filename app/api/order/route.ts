@@ -107,6 +107,40 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // ── Reject items that are currently out of stock ───────────────────────────
+  // Base items: checked directly. Variants: check their parent item's isAvailable.
+  const directItemIds = inboundIds.filter((id) => !variantMap.has(id));
+  const variantParentIds = [...new Set(knownVariants.map((v) => v.itemPetpoojaId))];
+  const allParentIds = [...new Set([...directItemIds, ...variantParentIds])];
+
+  const unavailableParents = allParentIds.length > 0
+    ? await prisma.menuItem.findMany({
+        where: { petpoojaId: { in: allParentIds }, isAvailable: false },
+        select: { petpoojaId: true },
+      })
+    : [];
+  const unavailableParentSet = new Set(unavailableParents.map((i) => i.petpoojaId));
+
+  const outOfStockIds = inboundIds.filter((id) => {
+    const variant = variantMap.get(id);
+    const parentId = variant ? variant.itemPetpoojaId : id;
+    return unavailableParentSet.has(parentId);
+  });
+
+  if (outOfStockIds.length > 0) {
+    const names = outOfStockIds.map(
+      (id) => variantNameMap.get(id) ?? itemNameMap.get(id) ?? id,
+    );
+    return NextResponse.json(
+      {
+        success: false,
+        error: `The following item(s) are currently out of stock: ${names.join(', ')}. Please remove them from your cart.`,
+        outOfStockItems: outOfStockIds,
+      },
+      { status: 400 },
+    );
+  }
+
   // ── Validate all addon IDs exist in MenuAddon ──────────────────────────────
   const allAddonIds = body.items.flatMap((i) => (i.addons ?? []).map((a) => a.petpoojaId));
   const knownAddons = allAddonIds.length > 0

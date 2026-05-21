@@ -5,11 +5,13 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
+import { useCartAvailability } from "@/hooks/useCartAvailability";
 import { PREDESTINED_LOCATIONS } from "@/constants/locations";
 
 export default function Checkout() {
     const router = useRouter();
     const { items, getSubtotal, getTax, getTotal, clearCart } = useCartStore();
+    const { outOfStockIds } = useCartAvailability();
 
     const [swiped, setSwiped]   = useState(false);
     const [placing, setPlacing] = useState(false);
@@ -68,6 +70,12 @@ export default function Checkout() {
         }
         if (orderType === "H" && (!selectedBuilding || !selectedFloor || !selectedRoom)) {
             setError("Please select your building, floor, and room.");
+            animate(dragX, 0, { type: "spring", stiffness: 300 });
+            return;
+        }
+
+        if (outOfStockIds.size > 0) {
+            setError("Some items in your cart are out of stock. Go back and remove them.");
             animate(dragX, 0, { type: "spring", stiffness: 300 });
             return;
         }

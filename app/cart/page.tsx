@@ -2,14 +2,19 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
+import { useCartAvailability } from "@/hooks/useCartAvailability";
 
 export default function Cart() {
+    const router = useRouter();
     const { items, updateQuantity, removeItem, getSubtotal, getTax, getTotal } = useCartStore();
+    const { outOfStockIds, checking } = useCartAvailability();
 
     const subtotal = getSubtotal();
     const taxes = getTax();
     const total = getTotal();
+    const hasOutOfStock = outOfStockIds.size > 0;
 
     return (
         <main className="bg-[#FFFDF0] dark:bg-background-dark min-h-screen pb-40">
@@ -71,7 +76,9 @@ export default function Cart() {
                     <>
                         {/* Cart Items */}
                         <AnimatePresence mode="popLayout">
-                            {items.map((item, index) => (
+                            {items.map((item, index) => {
+                                const isOOS = outOfStockIds.has(item.id);
+                                return (
                                 <motion.div
                                     key={item.id}
                                     layout
@@ -79,7 +86,7 @@ export default function Cart() {
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: 100, scale: 0.9 }}
                                     transition={{ delay: index * 0.06 }}
-                                    className="bg-white dark:bg-slate-900/80 rounded-2xl p-4 flex gap-4 shadow-sm border border-slate-100 dark:border-slate-800 relative"
+                                    className={`bg-white dark:bg-slate-900/80 rounded-2xl p-4 flex gap-4 shadow-sm border relative ${isOOS ? "border-red-300 dark:border-red-700" : "border-slate-100 dark:border-slate-800"}`}
                                 >
                                     <motion.button
                                         whileTap={{ scale: 0.8, rotate: 90 }}
@@ -88,6 +95,12 @@ export default function Cart() {
                                     >
                                         <span className="material-symbols-outlined text-[16px]">close</span>
                                     </motion.button>
+
+                                    {isOOS && (
+                                        <div className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">
+                                            Out of Stock
+                                        </div>
+                                    )}
 
                                     {/* Image or placeholder */}
                                     {item.image ? (
@@ -144,7 +157,8 @@ export default function Cart() {
                                         </div>
                                     </div>
                                 </motion.div>
-                            ))}
+                                );
+                            })}
                         </AnimatePresence>
 
                         {/* Cooking Instructions */}
@@ -205,9 +219,19 @@ export default function Cart() {
                     transition={{ type: "spring", stiffness: 100, delay: 0.4 }}
                     className="fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-background-dark z-50 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]"
                 >
-                    <Link
-                        href="/checkout"
-                        className="flex items-center justify-between bg-royal-blue rounded-2xl text-white px-5 py-4 shadow-xl shadow-royal-blue/30 active:scale-[0.98] transition-transform"
+                    {hasOutOfStock && (
+                        <p className="text-center text-xs font-bold text-red-500 mb-2">
+                            Remove out-of-stock items before checking out
+                        </p>
+                    )}
+                    <button
+                        onClick={() => !hasOutOfStock && router.push("/checkout")}
+                        disabled={hasOutOfStock || checking}
+                        className={`w-full flex items-center justify-between rounded-2xl text-white px-5 py-4 transition-all ${
+                            hasOutOfStock
+                                ? "bg-slate-400 dark:bg-slate-600 cursor-not-allowed"
+                                : "bg-royal-blue shadow-xl shadow-royal-blue/30 active:scale-[0.98]"
+                        }`}
                     >
                         <div className="flex flex-col">
                             <span className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">
@@ -218,10 +242,12 @@ export default function Cart() {
                             </span>
                         </div>
                         <div className="flex items-center gap-1.5 font-bold text-sm">
-                            Proceed to Checkout
-                            <span className="material-symbols-outlined text-base">arrow_forward</span>
+                            {hasOutOfStock ? "Items Unavailable" : "Proceed to Checkout"}
+                            <span className="material-symbols-outlined text-base">
+                                {hasOutOfStock ? "block" : "arrow_forward"}
+                            </span>
                         </div>
-                    </Link>
+                    </button>
                 </motion.div>
             )}
         </main>
