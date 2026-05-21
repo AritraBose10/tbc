@@ -62,7 +62,16 @@ function MenuContent() {
             setLoading(false);
         });
 
-        // EventSource reconnects automatically on network drop
+        es.onerror = () => {
+            // SSE dropped — fall back to a plain fetch so the page isn't blank
+            fetch("/api/menu")
+                .then((r) => r.json())
+                .then((data: LiveMenuItem[]) => setMenuItems(data))
+                .catch(() => {})
+                .finally(() => setLoading(false));
+            es.close();
+        };
+
         return () => es.close();
     }, []);
 
