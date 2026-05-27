@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useCartStore } from "@/store/useCartStore";
 
-type SlimMenuItem = { petpoojaId: string; variants: { petpoojaId: string }[] };
+type SlimMenuItem = { petpoojaId: string; isAvailable: boolean; variants: { petpoojaId: string }[] };
 
 function buildAvailableSet(menuItems: SlimMenuItem[]): Set<string> {
   const s = new Set<string>();
   for (const m of menuItems) {
+    if (!m.isAvailable) continue;
     s.add(m.petpoojaId);
     for (const v of m.variants) s.add(v.petpoojaId);
   }

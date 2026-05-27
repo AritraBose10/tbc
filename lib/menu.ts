@@ -2,7 +2,6 @@ import { prisma } from '@/lib/prisma';
 
 export async function fetchMenuItems() {
   const rows = await prisma.menuItem.findMany({
-    where: { isAvailable: true },
     include: { variants: true, addons: true },
     orderBy: [{ categoryName: 'asc' }, { name: 'asc' }],
   });
@@ -22,6 +21,7 @@ export async function fetchMenuItems() {
       price:        row.price,
       categoryId:   row.categoryId,
       categoryName: row.categoryName,
+      isAvailable:  row.isAvailable,
       isVeg,
       variants: row.variants.map((v) => ({
         petpoojaId: v.petpoojaId,

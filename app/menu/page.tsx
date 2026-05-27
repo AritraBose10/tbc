@@ -17,6 +17,7 @@ type LiveMenuItem = {
     name:         string;
     price:        number;
     categoryName: string;
+    isAvailable:  boolean;
     isVeg:        boolean;
     variants:     LiveMenuVariant[];
     addons:       LiveMenuAddon[];
@@ -161,7 +162,6 @@ function MenuContent() {
                             ? getVariantTotalQty(item)
                             : getItemQty(item.petpoojaId);
 
-                        // Starting price label for variant-only items
                         const priceLabel = variantOnly
                             ? `from ₹${Math.min(...item.variants.map((v) => v.price))}`
                             : `₹${item.price}`;
@@ -171,7 +171,11 @@ function MenuContent() {
                                 key={item.petpoojaId}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-slate-50 dark:border-slate-700/50 flex items-center gap-3 hover:shadow-md transition-shadow"
+                                className={`bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border flex items-center gap-3 transition-shadow ${
+                                    item.isAvailable
+                                        ? "border-slate-50 dark:border-slate-700/50 hover:shadow-md"
+                                        : "border-slate-100 dark:border-slate-700/30 opacity-60"
+                                }`}
                             >
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
@@ -199,7 +203,12 @@ function MenuContent() {
                                 </div>
 
                                 <div className="flex items-center flex-shrink-0">
-                                    {variantOnly ? (
+                                    {!item.isAvailable ? (
+                                        /* Out of stock — disabled pill */
+                                        <span className="h-10 px-4 flex items-center bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest">
+                                            Out of Stock
+                                        </span>
+                                    ) : variantOnly ? (
                                         /* Variant-only: always open the picker */
                                         <motion.button
                                             whileTap={{ scale: 0.9 }}

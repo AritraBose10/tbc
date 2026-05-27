@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -107,18 +108,27 @@ export default function Header({
                         <span className="material-symbols-outlined text-2xl">menu</span>
                     </motion.button>
 
-                    <div className="flex flex-col items-center">
-                        <motion.h1
-                            initial={{ letterSpacing: "0.2em" }}
-                            animate={{ letterSpacing: "0.05em" }}
-                            transition={{ duration: 1, delay: 0.3 }}
-                            className="text-royal-blue dark:text-primary text-xl font-black leading-tight uppercase tracking-tighter"
-                        >
-                            THE BIRYANI <span className="text-terracotta">CANTEEN</span>
-                        </motion.h1>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 tracking-[0.3em] font-extrabold uppercase mt-0.5">
-                            Multi-Cuisine Kitchen
-                        </p>
+                    <div className="flex items-center gap-2.5">
+                        <Image
+                            src="/image.png"
+                            alt="The Biryani Canteen"
+                            width={38}
+                            height={38}
+                            className="rounded-full object-cover shrink-0"
+                        />
+                        <div className="flex flex-col items-start">
+                            <motion.h1
+                                initial={{ letterSpacing: "0.2em" }}
+                                animate={{ letterSpacing: "0.05em" }}
+                                transition={{ duration: 1, delay: 0.3 }}
+                                className="text-royal-blue dark:text-primary text-xl font-black leading-tight uppercase tracking-tighter"
+                            >
+                                THE BIRYANI <span className="text-terracotta">CANTEEN</span>
+                            </motion.h1>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 tracking-[0.3em] font-extrabold uppercase mt-0.5">
+                                Multi-Cuisine Kitchen
+                            </p>
+                        </div>
                     </div>
 
                     <Link href="/cart">

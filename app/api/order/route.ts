@@ -308,7 +308,7 @@ export async function POST(req: NextRequest) {
     dcTaxPercentage: 0,
     pcTaxPercentage: 0,
     paymentType:     body.paymentType,
-    enableDelivery:  body.orderType === 'H' ? 1 : 0,
+    enableDelivery:  1,
     customer: {
       name:      body.customer.name,
       address:   body.customer.address,
