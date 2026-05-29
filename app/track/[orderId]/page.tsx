@@ -35,8 +35,10 @@ export default function TrackOrder() {
     const params  = useParams();
     const orderId = params.orderId as string;
 
-    const [order,    setOrder]    = useState<OrderData | null>(null);
-    const [notFound, setNotFound] = useState(false);
+    const [order,      setOrder]      = useState<OrderData | null>(null);
+    const [notFound,   setNotFound]   = useState(false);
+    const [cancelling, setCancelling] = useState(false);
+    const [secondsLeft, setSecondsLeft] = useState(0);
 
     const fetchStatus = useCallback(async () => {
         try {
@@ -55,11 +57,36 @@ export default function TrackOrder() {
         return () => clearInterval(interval);
     }, [fetchStatus]);
 
+    useEffect(() => {
+        if (!order?.createdAt) return;
+        const WINDOW = 2 * 60 * 1000;
+        const tick = () => {
+            const age = Date.now() - new Date(order.createdAt).getTime();
+            setSecondsLeft(Math.max(0, Math.floor((WINDOW - age) / 1000)));
+        };
+        tick();
+        const id = setInterval(tick, 1000);
+        return () => clearInterval(id);
+    }, [order?.createdAt]);
+
     const isCancelled = order?.status === "cancelled" || order?.status === "rejected";
     const isFinal     = isCancelled || order?.status === "delivered";
     const isTakeaway  = order?.orderType === "P";
     const currentStep = isCancelled ? 0 : (order ? (STATUS_STEP[order.status] ?? 1) : 1);
     const prepTime    = order?.callbacks.findLast((c) => c.prepTime != null)?.prepTime ?? null;
+    const canCancel   = !!order && !isFinal && secondsLeft > 0 && order.status === 'pending';
+
+    const handleCancel = async () => {
+        setCancelling(true);
+        try {
+            const res  = await fetch(`/api/order/${orderId}/cancel`, { method: 'POST' });
+            const data = await res.json();
+            if (data.success) { fetchStatus(); }
+            else { alert(data.error ?? 'Could not cancel order. Please call us directly.'); }
+        } finally {
+            setCancelling(false);
+        }
+    };
 
     const steps = [
         { id: 1, title: "Order Placed",                              subtitle: "We have received your order",                             icon: "receipt_long" },
@@ -133,7 +160,7 @@ export default function TrackOrder() {
                         </div>
                         <div>
                             <p className="font-bold text-red-700 dark:text-red-400">Order Cancelled</p>
-                            <p className="text-sm text-red-500 mt-0.5">Your order was cancelled by the restaurant.</p>
+                            <p className="text-sm text-red-500 mt-0.5">This order has been cancelled.</p>
                         </div>
                     </motion.div>
                 )}
@@ -223,6 +250,20 @@ export default function TrackOrder() {
                             <span className="font-black text-lg text-gray-900 dark:text-white">₹{order.totalAmount.toFixed(2)}</span>
                         </div>
                     </div>
+                )}
+
+                {canCancel && (
+                    <motion.button
+                        onClick={handleCancel}
+                        disabled={cancelling}
+                        whileTap={{ scale: 0.97 }}
+                        className="mt-6 mb-2 w-full flex items-center justify-center gap-2 py-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-black rounded-2xl text-sm uppercase tracking-widest border border-red-200 dark:border-red-800 disabled:opacity-60"
+                    >
+                        <span className="material-symbols-outlined text-base">cancel</span>
+                        {cancelling
+                            ? 'Cancelling…'
+                            : `Cancel Order · ${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, '0')}`}
+                    </motion.button>
                 )}
 
                 <Link

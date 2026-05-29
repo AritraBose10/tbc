@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -28,6 +28,7 @@ const STATUS_MAP: Record<string, { label: string; cls: string; icon: string }> =
     dispatched: { label: "On the Way", icon: "moped",          cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
     delivered:  { label: "Delivered",  icon: "check_circle",   cls: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400" },
     rejected:   { label: "Rejected",   icon: "cancel",         cls: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" },
+    cancelled:  { label: "Cancelled",  icon: "cancel",         cls: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" },
 };
 
 const ACTIVE = new Set(["pending", "accepted", "dispatched"]);
@@ -42,10 +43,37 @@ function StatusBadge({ status }: { status: string }) {
     );
 }
 
-function OrderCard({ order }: { order: Order }) {
-    const [expanded, setExpanded] = useState(false);
+const CANCEL_WINDOW_MS = 2 * 60 * 1000;
+
+function OrderCard({ order, onCancelled }: { order: Order; onCancelled: () => void }) {
+    const [expanded,    setExpanded]    = useState(false);
+    const [cancelling,  setCancelling]  = useState(false);
+    const [secondsLeft, setSecondsLeft] = useState(0);
     const isActive = ACTIVE.has(order.status);
     const date = new Date(order.createdAt);
+
+    useEffect(() => {
+        if (!isActive || order.status !== 'pending') return;
+        const tick = () => {
+            const age = Date.now() - new Date(order.createdAt).getTime();
+            setSecondsLeft(Math.max(0, Math.floor((CANCEL_WINDOW_MS - age) / 1000)));
+        };
+        tick();
+        const id = setInterval(tick, 1000);
+        return () => clearInterval(id);
+    }, [isActive, order.status, order.createdAt]);
+
+    const handleCancel = async () => {
+        setCancelling(true);
+        try {
+            const res  = await fetch(`/api/order/${order.id}/cancel`, { method: 'POST' });
+            const data = await res.json();
+            if (data.success) { onCancelled(); }
+            else { alert(data.error ?? 'Could not cancel order.'); }
+        } finally {
+            setCancelling(false);
+        }
+    };
 
     return (
         <motion.div
@@ -128,6 +156,18 @@ function OrderCard({ order }: { order: Order }) {
 
             {/* Footer actions */}
             <div className="px-4 pb-4 pt-1 flex gap-2">
+                {isActive && order.status === 'pending' && secondsLeft > 0 && (
+                    <button
+                        onClick={handleCancel}
+                        disabled={cancelling}
+                        className="flex items-center justify-center gap-1 px-3 py-2.5 bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 rounded-xl text-[11px] font-black border border-red-100 dark:border-red-900/30 disabled:opacity-60 shrink-0"
+                    >
+                        <span className="material-symbols-outlined text-sm">cancel</span>
+                        {cancelling
+                            ? '…'
+                            : `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, '0')}`}
+                    </button>
+                )}
                 {isActive && (
                     <Link
                         href={`/track/${order.id}`}
@@ -153,10 +193,11 @@ function OrderCard({ order }: { order: Order }) {
 
 export default function OrdersPage() {
     const router = useRouter();
-    const [orders, setOrders] = useState<Order[]>([]);
+    const [orders,  setOrders]  = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const fetchOrders = useCallback(() => {
+        setLoading(true);
         fetch("/api/orders")
             .then((res) => {
                 if (res.status === 401) { router.push("/login?next=/orders"); return null; }
@@ -165,6 +206,8 @@ export default function OrdersPage() {
             .then((data) => { if (data) setOrders(data.orders ?? []); })
             .finally(() => setLoading(false));
     }, [router]);
+
+    useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
     const active = orders.filter((o) => ACTIVE.has(o.status));
     const past   = orders.filter((o) => !ACTIVE.has(o.status));
@@ -219,7 +262,7 @@ export default function OrdersPage() {
                             <section>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Active</p>
                                 <div className="space-y-3">
-                                    {active.map((o) => <OrderCard key={o.id} order={o} />)}
+                                    {active.map((o) => <OrderCard key={o.id} order={o} onCancelled={fetchOrders} />)}
                                 </div>
                             </section>
                         )}
@@ -227,7 +270,7 @@ export default function OrdersPage() {
                             <section>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Past Orders</p>
                                 <div className="space-y-3">
-                                    {past.map((o) => <OrderCard key={o.id} order={o} />)}
+                                    {past.map((o) => <OrderCard key={o.id} order={o} onCancelled={fetchOrders} />)}
                                 </div>
                             </section>
                         )}
