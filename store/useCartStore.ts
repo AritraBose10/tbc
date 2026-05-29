@@ -83,9 +83,9 @@ export const useCartStore = create<CartStore>()(
                     return total + (item.price + addonSum) * item.quantity;
                 }, 0),
 
-            getTax: () => get().getSubtotal() * 0.05,
+            getTax: () => 0,
 
-            getTotal: () => get().getSubtotal() + get().getTax(),
+            getTotal: () => get().getSubtotal(),
         }),
         {
             name: 'tbc-cart-storage',

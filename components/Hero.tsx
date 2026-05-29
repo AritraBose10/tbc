@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 const carouselItems = [
     {
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuB714WIhZ9p_KwN73Gap25A4b-H8Dj1cDDhnZ1MtU9AMQn2dRzcGQQMKDowqYcAQzvDOCOAjifl1a-wflhtza8Y61E-SfjcgU9CpP2_A9THNimp54h-sHXnCKLfwu4A_IxyKolcCQeZqbILIOLFsg68xFYFowumyYAau-B4gZrG7-uTBsjtuqqkKiinIicE_c-ryLmdhE7Q6maxnvayYk_2CWpUQulIPB0pu-41so0M6_sWWfJ7zcBM0Cr3THbo6H2Nve4DafMWfVzA",
+        image: "https://plus.unsplash.com/premium_photo-1694141252774-c937d97641da?q=80&w=1920&auto=format&fit=crop",
         badge: "Heritage Recipe",
         title: "Authentic Royal <br /> Flavors",
         subtitle: "Experience the Nizami Legacy"

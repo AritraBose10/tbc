@@ -350,10 +350,6 @@ export default function Checkout() {
                             <span className="font-semibold text-slate-700 dark:text-slate-300">&#8377;{subtotal.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                            <span>Taxes &amp; Fees</span>
-                            <span className="font-semibold text-slate-700 dark:text-slate-300">&#8377;{taxes.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-slate-500 dark:text-slate-400">
                             <span>Delivery</span>
                             <span className="text-green-600 font-bold">FREE</span>
                         </div>

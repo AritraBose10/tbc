@@ -193,10 +193,6 @@ export default function Cart() {
                                     <span className="font-semibold text-slate-800 dark:text-slate-200">₹{subtotal.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                                    <span>Taxes &amp; Fees</span>
-                                    <span className="font-semibold text-slate-800 dark:text-slate-200">₹{taxes.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between text-slate-600 dark:text-slate-400">
                                     <span>Delivery Fee</span>
                                     <span className="font-bold text-green-600">FREE</span>
                                 </div>
