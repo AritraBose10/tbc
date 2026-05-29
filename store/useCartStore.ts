@@ -21,6 +21,8 @@ export interface CartItem {
     addons?: CartAddon[];
 }
 
+export const ORDER_CAP = 3;
+
 interface CartStore {
     items: CartItem[];
     addItem: (product: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
@@ -28,6 +30,7 @@ interface CartStore {
     updateQuantity: (id: string, delta: number) => void;
     clearCart: () => void;
     getTotalItems: () => number;
+    isAtCap: () => boolean;
     getSubtotal: () => number;
     getTax: () => number;
     getTotal: () => number;
@@ -39,6 +42,7 @@ export const useCartStore = create<CartStore>()(
             items: [],
 
             addItem: (product) => {
+                if (get().getTotalItems() >= ORDER_CAP) return;
                 set((state) => {
                     const existing = state.items.find((item) => item.id === product.id);
                     if (existing) {
@@ -61,6 +65,7 @@ export const useCartStore = create<CartStore>()(
             },
 
             updateQuantity: (id, delta) => {
+                if (delta > 0 && get().getTotalItems() >= ORDER_CAP) return;
                 set((state) => ({
                     items: state.items
                         .map((item) =>
@@ -76,6 +81,8 @@ export const useCartStore = create<CartStore>()(
 
             getTotalItems: () =>
                 get().items.reduce((total, item) => total + item.quantity, 0),
+
+            isAtCap: () => get().getTotalItems() >= ORDER_CAP,
 
             getSubtotal: () =>
                 get().items.reduce((total, item) => {

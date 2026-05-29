@@ -58,6 +58,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // ── Order cap: max 3 items per order ─────────────────────────────────────
+  const totalQty = body.items.reduce((s, i) => s + i.quantity, 0);
+  if (totalQty > 3) {
+    return NextResponse.json(
+      { success: false, error: 'Orders are limited to 3 items per person.' },
+      { status: 400 },
+    );
+  }
+
   // ── Reject orders when store is closed ────────────────────────────────────
   const storeConfig = await prisma.petpoojaConfig.findUnique({ where: { key: 'storeOpen' } });
   if (storeConfig?.value !== '1') {

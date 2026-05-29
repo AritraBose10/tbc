@@ -3,17 +3,19 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCartStore } from "@/store/useCartStore";
+import { useCartStore, ORDER_CAP } from "@/store/useCartStore";
 import { useCartAvailability } from "@/hooks/useCartAvailability";
 
 export default function Cart() {
     const router = useRouter();
-    const { items, updateQuantity, removeItem, getSubtotal, getTax, getTotal } = useCartStore();
+    const { items, updateQuantity, removeItem, getSubtotal, getTax, getTotal, getTotalItems } = useCartStore();
     const { outOfStockIds, checking } = useCartAvailability();
 
     const subtotal = getSubtotal();
     const taxes = getTax();
     const total = getTotal();
+    const totalItems = getTotalItems();
+    const atCap = totalItems >= ORDER_CAP;
     const hasOutOfStock = outOfStockIds.size > 0;
 
     return (
@@ -74,6 +76,20 @@ export default function Cart() {
                     </motion.div>
                 ) : (
                     <>
+                        {/* Order cap banner */}
+                        {atCap && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl"
+                            >
+                                <span className="material-symbols-outlined text-amber-500 text-xl shrink-0">info</span>
+                                <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                                    Max {ORDER_CAP} items per order reached. Remove an item to add more.
+                                </p>
+                            </motion.div>
+                        )}
+
                         {/* Cart Items */}
                         <AnimatePresence mode="popLayout">
                             {items.map((item, index) => {
@@ -147,9 +163,10 @@ export default function Cart() {
                                                     {item.quantity}
                                                 </motion.span>
                                                 <motion.button
-                                                    whileTap={{ scale: 0.8 }}
+                                                    whileTap={{ scale: atCap ? 1 : 0.8 }}
                                                     onClick={() => updateQuantity(item.id, 1)}
-                                                    className="w-7 h-7 flex items-center justify-center bg-primary text-royal-blue rounded-full shadow-sm"
+                                                    disabled={atCap}
+                                                    className="w-7 h-7 flex items-center justify-center bg-primary text-royal-blue rounded-full shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
                                                 >
                                                     <span className="material-symbols-outlined text-sm">add</span>
                                                 </motion.button>

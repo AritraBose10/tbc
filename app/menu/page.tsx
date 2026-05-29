@@ -122,7 +122,7 @@ function MenuContent() {
 
     return (
         <main className="min-h-screen bg-[#FFFDF0] dark:bg-background-dark pb-40">
-            <Header onSearch={setSearchQuery} />
+            <Header onSearch={setSearchQuery} showVegToggle />
 
             <div className="px-5 py-4">
                 <div className="flex items-center justify-between mb-6">

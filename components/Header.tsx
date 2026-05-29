@@ -19,8 +19,10 @@ interface MenuItem {
 
 export default function Header({
     onSearch,
+    showVegToggle = false,
 }: {
     onSearch?: (query: string) => void;
+    showVegToggle?: boolean;
 }) {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
@@ -230,29 +232,31 @@ export default function Header({
                         </AnimatePresence>
                     </motion.form>
 
-                    <motion.button
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.5 }}
-                        onClick={toggleVeg}
-                        className="flex flex-col items-center justify-center shrink-0 cursor-pointer"
-                    >
-                        <span className={`text-[9px] font-black mb-1.5 tracking-widest transition-colors ${isVeg ? "text-green-600" : "text-slate-400 opacity-60"}`}>
-                            VEG ONLY
-                        </span>
-                        <div className={`w-12 h-6 rounded-full p-1 relative transition-all duration-300 border-2 ${isVeg ? "bg-green-500/10 border-green-500" : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"}`}>
-                            <motion.div
-                                animate={{
-                                    x: isVeg ? 24 : 0,
-                                    backgroundColor: isVeg ? "#10b981" : "#94a3b8",
-                                }}
-                                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                                className="w-4 h-4 rounded-full shadow-sm flex items-center justify-center"
-                            >
-                                <div className={`w-1.5 h-1.5 rounded-full ${isVeg ? "bg-white" : "bg-white/50"}`} />
-                            </motion.div>
-                        </div>
-                    </motion.button>
+                    {showVegToggle && (
+                        <motion.button
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 0.5 }}
+                            onClick={toggleVeg}
+                            className="flex flex-col items-center justify-center shrink-0 cursor-pointer"
+                        >
+                            <span className={`text-[9px] font-black mb-1.5 tracking-widest transition-colors ${isVeg ? "text-green-600" : "text-slate-400 opacity-60"}`}>
+                                VEG ONLY
+                            </span>
+                            <div className={`w-12 h-6 rounded-full p-1 relative transition-all duration-300 border-2 ${isVeg ? "bg-green-500/10 border-green-500" : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"}`}>
+                                <motion.div
+                                    animate={{
+                                        x: isVeg ? 24 : 0,
+                                        backgroundColor: isVeg ? "#10b981" : "#94a3b8",
+                                    }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                                    className="w-4 h-4 rounded-full shadow-sm flex items-center justify-center"
+                                >
+                                    <div className={`w-1.5 h-1.5 rounded-full ${isVeg ? "bg-white" : "bg-white/50"}`} />
+                                </motion.div>
+                            </div>
+                        </motion.button>
+                    )}
                 </div>
             </motion.header>
 
