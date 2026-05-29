@@ -7,14 +7,14 @@ const CANCEL_WINDOW_MS = 2 * 60 * 1000; // 2 minutes
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { orderId: string } },
+  { params }: { params: Promise<{ orderId: string }> },
 ) {
   const authUser = await getAuthUserFromRequest(req);
   if (!authUser) {
     return NextResponse.json({ success: false, error: 'Unauthorised' }, { status: 401 });
   }
 
-  const { orderId } = params;
+  const { orderId } = await params;
   const order = await prisma.order.findUnique({ where: { id: orderId } });
 
   if (!order) {
