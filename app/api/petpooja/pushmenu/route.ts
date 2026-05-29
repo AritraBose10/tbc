@@ -52,6 +52,32 @@ export async function POST(req: NextRequest) {
     // STEP 2 — Build categoryId → categoryName map from restaurant payload
     const restaurant = body.restaurants?.[0] as Record<string, unknown> | undefined;
     const menuCategories = (restaurant?.menucategory as Array<{ categoryid: string; category_name: string }>) ?? [];
+    
+    // Fallback static category mapping for robust production sync
+    const STATIC_CATEGORY_MAP: Record<string, string> = {
+      '8814080': 'Hot Beverages',
+      '8814081': 'Mocktails & Cold Drinks',
+      '8814082': 'Milkshakes',
+      '8814084': 'Sandwiches',
+      '8814085': 'Kathi Rolls',
+      '8814086': 'Noodles',
+      '8814087': 'Momos',
+      '8814088': 'Maggi Special',
+      '8814089': 'Pizzas',
+      '8814090': 'Burgers',
+      '8814091': 'Pastas',
+      '8814092': 'Wraps',
+      '8814093': 'Veg Starters',
+      '8814094': 'Non-Veg Starters',
+      '8814095': 'Biryani Special',
+      '8814096': 'Indian Breads',
+      '8814097': 'Dal Corner',
+      '8814098': 'Combos & Platters',
+      '8814099': 'Main Course',
+      '8814100': 'Royal Thalis',
+      '9308816': 'Desserts',
+    };
+
     const categoryNameMap = new Map<string, string>();
     for (const cat of menuCategories) {
       if (cat.categoryid && cat.category_name) {
@@ -70,12 +96,17 @@ export async function POST(req: NextRequest) {
       }
 
       const hasVariants = item.itemallowvariation === '1';
-      const categoryName = categoryNameMap.get(item.item_categoryid ?? '') ?? '';
+      const rawCategoryId = item.item_categoryid ?? '';
+      const categoryName = categoryNameMap.get(rawCategoryId) 
+        || STATIC_CATEGORY_MAP[rawCategoryId] 
+        || '';
+
+      const cleanName = item.itemname.replace(/Puiao/g, "Pulao");
 
       await prisma.menuItem.upsert({
         where:  { petpoojaId: item.itemid },
         update: {
-          name:         item.itemname,
+          name:         cleanName,
           price:        parseFloat(item.price) || 0,
           categoryId:   item.item_categoryid ?? '',
           categoryName,
@@ -84,7 +115,7 @@ export async function POST(req: NextRequest) {
         },
         create: {
           petpoojaId:   item.itemid,
-          name:         item.itemname,
+          name:         cleanName,
           price:        parseFloat(item.price) || 0,
           categoryId:   item.item_categoryid ?? '',
           categoryName,

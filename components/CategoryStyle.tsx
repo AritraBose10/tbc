@@ -23,7 +23,10 @@ function CategoryStyleContent() {
 
     return (
         <section className="pt-2 pb-6 overflow-hidden bg-white dark:bg-slate-950">
-            <div className="flex items-center gap-4 px-5 overflow-x-auto scrollbar-hide py-3 snap-x relative">
+            <div className="flex items-center gap-4 px-2 overflow-x-auto scrollbar-hide py-3 snap-x relative">
+                {/* Spacer to prevent left cut-off on mobile */}
+                <div className="w-2 shrink-0" />
+
                 {/* Special Offer Tile */}
                 <Link href="/menu">
                     <motion.div
@@ -74,6 +77,8 @@ function CategoryStyleContent() {
                         </motion.div>
                     );
                 })}
+                {/* Spacer to prevent right cut-off on mobile */}
+                <div className="w-2 shrink-0" />
             </div>
         </section>
     );
