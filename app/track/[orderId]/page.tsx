@@ -191,8 +191,8 @@ export default function TrackOrder() {
                     <div className="absolute left-[27px] top-4 bottom-8 w-0.5 bg-gray-100 dark:bg-gray-800" />
                     <div className="space-y-8 relative">
                         {steps.map((step) => {
-                            const isActive = currentStep === step.id;
-                            const isPast   = currentStep > step.id;
+                            const isActive = currentStep === step.id && currentStep < 4;
+                            const isPast   = currentStep > step.id || (currentStep === 4 && step.id === 4);
                             return (
                                 <div key={step.id} className="flex gap-5 relative z-10">
                                     <div className="flex flex-col items-center">
