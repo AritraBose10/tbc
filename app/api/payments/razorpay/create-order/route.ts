@@ -172,7 +172,14 @@ export async function POST(req: NextRequest) {
       currency: "INR",
     });
   } catch (error) {
-    console.error("Razorpay order creation failed:", error);
+    const rzpErr = error as { statusCode?: number; error?: { code?: string; description?: string; reason?: string } };
+    console.error("Razorpay order creation failed:", JSON.stringify({
+      statusCode: rzpErr?.statusCode,
+      code: rzpErr?.error?.code,
+      description: rzpErr?.error?.description,
+      reason: rzpErr?.error?.reason,
+      raw: String(error),
+    }));
     return NextResponse.json(
       { success: false, error: "Failed to create payment gateway order" },
       { status: 500 }
