@@ -196,14 +196,37 @@ export default function Checkout() {
                     amount: rzpData.amount,
                     currency: rzpData.currency,
                     name: "The Biryani Canteen",
-                    description: "Biryani Combo & Addons Order",
+                    description: "Food Order",
+                    image: "/image.png",
                     order_id: rzpData.razorpayOrderId,
                     prefill: {
                         name: customerName.trim(),
                         contact: customerPhone.trim(),
                     },
+                    config: {
+                        display: {
+                            blocks: {
+                                upi: {
+                                    name: "Pay via UPI",
+                                    instruments: [
+                                        { method: "upi" },
+                                    ],
+                                },
+                                other: {
+                                    name: "Other Payment Methods",
+                                    instruments: [
+                                        { method: "card" },
+                                        { method: "netbanking" },
+                                        { method: "wallet" },
+                                    ],
+                                },
+                            },
+                            sequence: ["block.upi", "block.other"],
+                            preferences: { show_default_blocks: false },
+                        },
+                    },
                     theme: {
-                        color: "#F47014", // Brand primary color
+                        color: "#d4af35",
                     },
                     handler: async function (response: any) {
                         try {
