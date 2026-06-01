@@ -32,7 +32,7 @@ export default function Checkout() {
     // Payment method state
     const [paymentMethod, setPaymentMethod] = useState<"COD" | "ONLINE">("ONLINE");
 
-    // Load Razorpay script dynamically
+    // Load Razorpay script dynamically with local fallback
     const loadRazorpayScript = (): Promise<boolean> => {
         return new Promise((resolve) => {
             if ((window as any).Razorpay) {
@@ -43,7 +43,15 @@ export default function Checkout() {
             script.src = "https://checkout.razorpay.com/v1/checkout.js";
             script.async = true;
             script.onload = () => resolve(true);
-            script.onerror = () => resolve(false);
+            script.onerror = () => {
+                console.warn("External Razorpay script failed to load. Falling back to local script.");
+                const fallbackScript = document.createElement("script");
+                fallbackScript.src = "/checkout.js";
+                fallbackScript.async = true;
+                fallbackScript.onload = () => resolve(true);
+                fallbackScript.onerror = () => resolve(false);
+                document.body.appendChild(fallbackScript);
+            };
             document.body.appendChild(script);
         });
     };
