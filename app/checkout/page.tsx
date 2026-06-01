@@ -192,7 +192,7 @@ export default function Checkout() {
 
                 // 3. Configure and Open Razorpay Checkout overlay
                 const options = {
-                    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_SwL14TZbAKD1wF",
+                    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
                     amount: rzpData.amount,
                     currency: rzpData.currency,
                     name: "The Biryani Canteen",
