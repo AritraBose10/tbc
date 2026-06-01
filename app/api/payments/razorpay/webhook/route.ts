@@ -151,8 +151,31 @@ export async function POST(req: NextRequest) {
       case 'refund.failed': {
         const refundEntity = (payload.refund as Record<string, unknown>)?.entity as Record<string, unknown>;
         const paymentId    = refundEntity?.payment_id as string ?? 'unknown';
+        const failureReason = refundEntity?.error_description as string ?? 'Unknown failure from Razorpay';
+
         console.error(`[razorpay-webhook] ⚠ refund.failed for paymentId=${paymentId} — manual intervention required`);
-        // No DB update — the order stays 'paid'. Alert should be triggered here in production.
+
+        // Find the matching order and email the admin team
+        try {
+          const order = await prisma.order.findFirst({
+            where: { razorpayPaymentId: paymentId }
+          });
+          if (order) {
+            const { sendRefundFailureEmail } = await import('@/lib/email');
+            await sendRefundFailureEmail('digital@offbeatccu.com', {
+              orderId: order.id,
+              razorpayOrderId: order.razorpayOrderId,
+              razorpayPaymentId: order.razorpayPaymentId,
+              amount: order.totalAmount,
+              customerName: order.customerName,
+              customerPhone: order.customerPhone,
+              errorReason: `Razorpay webhook refund.failed: ${failureReason}`,
+            });
+            console.log(`[razorpay-webhook] Emailed refund failure alert for paymentId=${paymentId} to digital@offbeatccu.com`);
+          }
+        } catch (emailErr) {
+          console.error('[razorpay-webhook] Failed to send refund failure alert email:', emailErr);
+        }
         break;
       }
 

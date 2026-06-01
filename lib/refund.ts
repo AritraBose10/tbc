@@ -55,6 +55,27 @@ export async function triggerRazorpayRefund(orderId: string, reason: string): Pr
     return { success: true };
   } catch (error: any) {
     console.error(`[refund] Error refunding order ${orderId}:`, error);
+
+    // Send an email alert to the admin/support team
+    try {
+      const order = await prisma.order.findUnique({ where: { id: orderId } });
+      if (order) {
+        const { sendRefundFailureEmail } = await import('./email');
+        await sendRefundFailureEmail('digital@offbeatccu.com', {
+          orderId: order.id,
+          razorpayOrderId: order.razorpayOrderId,
+          razorpayPaymentId: order.razorpayPaymentId,
+          amount: order.totalAmount,
+          customerName: order.customerName,
+          customerPhone: order.customerPhone,
+          errorReason: error?.message || 'Unknown error during refund call',
+        });
+        console.log(`[refund] Emailed refund failure alert for order ${orderId} to digital@offbeatccu.com`);
+      }
+    } catch (emailErr) {
+      console.error('[refund] Failed to send refund failure alert email:', emailErr);
+    }
+
     return { success: false, error: error?.message || 'Refund request failed' };
   }
 }
