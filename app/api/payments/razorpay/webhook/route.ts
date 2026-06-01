@@ -36,7 +36,10 @@ export async function POST(req: NextRequest) {
     .update(rawBody)
     .digest('hex');
 
-  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig))) {
+  if (
+    signature.length !== expectedSig.length ||
+    !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig))
+  ) {
     console.warn('[razorpay-webhook] Signature mismatch — request rejected');
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
