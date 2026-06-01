@@ -28,6 +28,8 @@ export async function GET(
     customerName: order.customerName,
     totalAmount:  order.totalAmount,
     createdAt:    order.createdAt,
+    paymentStatus: order.paymentStatus,
+    paymentType:   order.paymentType,
     items:        order.items.map((i) => ({
       name:     i.name,
       quantity: i.quantity,

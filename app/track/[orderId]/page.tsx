@@ -19,6 +19,8 @@ interface OrderData {
     createdAt:    string;
     items:        OrderItem[];
     callbacks:    Callback[];
+    paymentStatus: string;
+    paymentType:   string;
 }
 
 const STATUS_STEP: Record<string, number> = {
@@ -149,21 +151,77 @@ export default function TrackOrder() {
                     <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 font-medium font-mono">{orderId}</p>
                 </div>
 
-                {/* Cancelled banner */}
+                {/* Cancelled banner & Refund Tracker */}
                 {isCancelled && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-8 p-5 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800 flex items-center gap-4"
-                    >
-                        <div className="w-12 h-12 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center shrink-0">
-                            <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-2xl">cancel</span>
-                        </div>
-                        <div>
-                            <p className="font-bold text-red-700 dark:text-red-400">Order Cancelled</p>
-                            <p className="text-sm text-red-500 mt-0.5">This order has been cancelled.</p>
-                        </div>
-                    </motion.div>
+                    <div className="space-y-4 mb-8">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="p-5 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800 flex items-center gap-4"
+                        >
+                            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center shrink-0">
+                                <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-2xl">cancel</span>
+                            </div>
+                            <div>
+                                <p className="font-bold text-red-700 dark:text-red-400">Order Cancelled</p>
+                                <p className="text-sm text-red-500 mt-0.5">This order was rejected or cancelled.</p>
+                            </div>
+                        </motion.div>
+
+                        {/* Refund Tracking Visual Panel */}
+                        {order && order.paymentType === "ONLINE" && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 }}
+                                className={`p-5 rounded-2xl border flex flex-col gap-3 ${
+                                    order.paymentStatus === "refunded"
+                                        ? "bg-green-50/70 border-green-200 dark:bg-green-950/20 dark:border-green-850"
+                                        : order.paymentStatus === "refund_initiated"
+                                        ? "bg-amber-50/70 border-amber-200 dark:bg-amber-950/20 dark:border-amber-850"
+                                        : "bg-blue-50/70 border-blue-200 dark:bg-blue-950/20 dark:border-blue-850"
+                                }`}
+                            >
+                                <div className="flex items-start gap-4">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                                        order.paymentStatus === "refunded"
+                                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                            : order.paymentStatus === "refund_initiated"
+                                            ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                                            : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                    }`}>
+                                        <span className="material-symbols-outlined text-xl">
+                                            {order.paymentStatus === "refunded" ? "currency_rupee"
+                                                : order.paymentStatus === "refund_initiated" ? "sync"
+                                                : "info"}
+                                        </span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className={`font-bold text-[15px] ${
+                                            order.paymentStatus === "refunded" ? "text-green-800 dark:text-green-400"
+                                                : order.paymentStatus === "refund_initiated" ? "text-amber-800 dark:text-amber-400"
+                                                : "text-blue-800 dark:text-blue-400"
+                                        }`}>
+                                            {order.paymentStatus === "refunded" ? "Refund Processed"
+                                                : order.paymentStatus === "refund_initiated" ? "Refund Initiated"
+                                                : "Refund Under Review"}
+                                        </h4>
+                                        <p className={`text-xs mt-1 leading-relaxed ${
+                                            order.paymentStatus === "refunded" ? "text-green-600 dark:text-green-400/80"
+                                                : order.paymentStatus === "refund_initiated" ? "text-amber-600 dark:text-amber-400/80"
+                                                : "text-blue-600 dark:text-blue-400/80"
+                                        }`}>
+                                            {order.paymentStatus === "refunded"
+                                                ? "A full refund of the order amount has been successfully processed and credited back to your account."
+                                                : order.paymentStatus === "refund_initiated"
+                                                ? "The refund request was successfully sent to your bank. Depending on your bank, it should reflect in your account shortly."
+                                                : "Your online payment is being reviewed by the canteen team to initiate your refund."}
+                                        </p>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </div>
                 )}
 
                 {/* Takeaway token */}
