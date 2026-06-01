@@ -74,6 +74,16 @@ export async function POST(req: NextRequest) {
       where: { id: orderId },
       data:  { status: internalStatus },
     });
+
+    // If the new status is cancelled or rejected, trigger automatic refund for online-paid orders
+    if (['cancelled', 'rejected'].includes(internalStatus)) {
+      try {
+        const { triggerRazorpayRefund } = await import('@/lib/refund');
+        await triggerRazorpayRefund(orderId, `Petpooja callback: Order ${internalStatus}`);
+      } catch (refundErr) {
+        console.error(`[callback] Failed to trigger automatic refund for ${orderId}:`, refundErr);
+      }
+    }
   } catch (err) {
     console.error('[callback] Order.status update failed:', err);
   }

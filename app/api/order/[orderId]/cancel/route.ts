@@ -57,5 +57,13 @@ export async function POST(
     data:  { status: 'cancelled' },
   });
 
+  // Trigger automatic refund for online-paid orders
+  try {
+    const { triggerRazorpayRefund } = await import('@/lib/refund');
+    await triggerRazorpayRefund(orderId, 'User cancelled order within window');
+  } catch (refundErr) {
+    console.error(`[cancel] Failed to initiate automatic refund for ${orderId}:`, refundErr);
+  }
+
   return NextResponse.json({ success: true });
 }
