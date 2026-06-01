@@ -29,7 +29,14 @@ export async function POST(req: NextRequest) {
 
     if (session.attempts >= 3) {
       await prisma.otpSession.delete({ where: { id: session.id } });
-      return NextResponse.json({ error: "Too many incorrect attempts. Please request a new OTP." }, { status: 400 });
+      // Block new OTP requests for 5 minutes after exhausting attempts
+      const cooldownEnds = new Date(Date.now() + 5 * 60 * 1000);
+      await prisma.rateLimit.upsert({
+        where:  { key: `otp:cooldown:${normalizedEmail}` },
+        create: { key: `otp:cooldown:${normalizedEmail}`, count: 1, resetAt: cooldownEnds },
+        update: { count: 1, resetAt: cooldownEnds },
+      });
+      return NextResponse.json({ error: "Too many incorrect attempts. Please wait 5 minutes before requesting a new OTP." }, { status: 429 });
     }
 
     if (!verifyOtp(otp.trim(), session.otp)) {
@@ -38,6 +45,19 @@ export async function POST(req: NextRequest) {
         data: { attempts: session.attempts + 1 },
       });
       const remaining = 3 - (session.attempts + 1);
+      if (remaining === 0) {
+        await prisma.otpSession.delete({ where: { id: session.id } });
+        const cooldownEnds = new Date(Date.now() + 5 * 60 * 1000);
+        await prisma.rateLimit.upsert({
+          where:  { key: `otp:cooldown:${normalizedEmail}` },
+          create: { key: `otp:cooldown:${normalizedEmail}`, count: 1, resetAt: cooldownEnds },
+          update: { count: 1, resetAt: cooldownEnds },
+        });
+        return NextResponse.json(
+          { error: "Too many incorrect attempts. Please wait 5 minutes before requesting a new OTP." },
+          { status: 429 }
+        );
+      }
       return NextResponse.json(
         { error: `Incorrect OTP. ${remaining} attempt${remaining === 1 ? "" : "s"} remaining.` },
         { status: 400 }

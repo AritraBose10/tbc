@@ -93,6 +93,13 @@ model Order {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
+  // Payment information
+  paymentType       String          @default("COD")
+  paymentStatus     String          @default("pending")
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  razorpaySignature String?
+
   user            User?           @relation(fields: [userId], references: [id])
   items           OrderItem[]
   callbacks       OrderCallback[]
@@ -113,13 +120,14 @@ model OrderItem {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String   @default("")
-  email     String   @unique
-  phone     String   @default("")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  orders    Order[]
+  id           String   @id @default(cuid())
+  name         String   @default("")
+  email        String   @unique
+  phone        String   @default("")
+  tokenVersion Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  orders       Order[]
 }
 
 model OtpSession {

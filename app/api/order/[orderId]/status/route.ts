@@ -31,11 +31,17 @@ export async function GET(
 
     return NextResponse.json(
       {
-        status:       order.status,          // source of truth
+        status:       order.status,
         prepTime:     latestCallback?.prepTime     ?? null,
         deliveryTime: latestCallback?.deliveryTime ?? null,
         receivedAt:   latestCallback?.receivedAt   ?? null,
-        orderDetails: order,
+        orderDetails: {
+          id:        order.id,
+          orderType: order.orderType,
+          status:    order.status,
+          createdAt: order.createdAt,
+          items:     order.items,
+        },
       },
       { headers: NO_CACHE },
     );

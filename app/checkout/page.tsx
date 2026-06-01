@@ -29,6 +29,25 @@ export default function Checkout() {
     // Order Type (H = Delivery, P = Takeaway) — delivery disabled until live
     const [orderType, setOrderType] = useState<"H" | "P">("P");
 
+    // Payment method state
+    const [paymentMethod, setPaymentMethod] = useState<"COD" | "ONLINE">("ONLINE");
+
+    // Load Razorpay script dynamically
+    const loadRazorpayScript = (): Promise<boolean> => {
+        return new Promise((resolve) => {
+            if ((window as any).Razorpay) {
+                resolve(true);
+                return;
+            }
+            const script = document.createElement("script");
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            script.async = true;
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+    };
+
     // Pre-fill name and phone from profile if the user is signed in
     useEffect(() => {
         fetch("/api/auth/me")
@@ -91,45 +110,156 @@ export default function Checkout() {
                 ? "Takeaway / Self Pickup" 
                 : `Room ${selectedRoom}, ${floor?.name ?? selectedFloor}, ${building?.name ?? selectedBuilding}`;
 
-            const res = await fetch("/api/order", {
-                method:  "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    customer: {
-                        name:    customerName.trim(),
-                        address,
-                        mobile:  customerPhone.trim(),
-                        email:   "",
-                        latitude:  "",
-                        longitude: "",
-                    },
-                    items: items.map((item) => ({
-                        petpoojaId: item.id,
-                        name:       item.name,
-                        price:      item.price,
-                        quantity:   item.quantity,
-                        addons:     (item.addons ?? []).map((a) => ({
-                            petpoojaId: a.petpoojaId,
-                            name:       a.name,
-                            price:      a.price,
+            if (paymentMethod === "COD") {
+                const res = await fetch("/api/order", {
+                    method:  "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        customer: {
+                            name:    customerName.trim(),
+                            address,
+                            mobile:  customerPhone.trim(),
+                            email:   "",
+                            latitude:  "",
+                            longitude: "",
+                        },
+                        items: items.map((item) => ({
+                            petpoojaId: item.id,
+                            name:       item.name,
+                            price:      item.price,
+                            quantity:   item.quantity,
+                            addons:     (item.addons ?? []).map((a) => ({
+                                petpoojaId: a.petpoojaId,
+                                name:       a.name,
+                                price:      a.price,
+                            })),
                         })),
-                    })),
-                    paymentType: "COD",
-                    orderType:   orderType,
-                }),
-            });
+                        paymentType: "COD",
+                        orderType:   orderType,
+                    }),
+                });
 
-            const data = await res.json();
+                const data = await res.json();
 
-            if (!data.success) {
-                throw new Error(data.error ?? "Order placement failed");
+                if (!data.success) {
+                    throw new Error(data.error ?? "Order placement failed");
+                }
+
+                setSwiped(true);
+                clearCart();
+                setTimeout(() => {
+                    router.push(`/track/${data.orderId}`);
+                }, 1500);
+            } else {
+                // ONLINE PAYMENT FLOW
+                // 1. Load Razorpay Script
+                const scriptLoaded = await loadRazorpayScript();
+                if (!scriptLoaded) {
+                    throw new Error("Unable to load Razorpay payment gateway script. Please check your internet connection.");
+                }
+
+                // 2. Create Razorpay order on the server
+                const rzpRes = await fetch("/api/payments/razorpay/create-order", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        items: items.map((item) => ({
+                            petpoojaId: item.id,
+                            name:       item.name,
+                            price:      item.price,
+                            quantity:   item.quantity,
+                            addons:     (item.addons ?? []).map((a) => ({
+                                petpoojaId: a.petpoojaId,
+                                name:       a.name,
+                                price:      a.price,
+                            })),
+                        })),
+                    }),
+                });
+
+                const rzpData = await rzpRes.json();
+                if (!rzpData.success) {
+                    throw new Error(rzpData.error ?? "Failed to initialize payment gateway order.");
+                }
+
+                // 3. Configure and Open Razorpay Checkout overlay
+                const options = {
+                    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_SwL14TZbAKD1wF",
+                    amount: rzpData.amount,
+                    currency: rzpData.currency,
+                    name: "The Biryani Canteen",
+                    description: "Biryani Combo & Addons Order",
+                    order_id: rzpData.razorpayOrderId,
+                    prefill: {
+                        name: customerName.trim(),
+                        contact: customerPhone.trim(),
+                    },
+                    theme: {
+                        color: "#F47014", // Brand primary color
+                    },
+                    handler: async function (response: any) {
+                        try {
+                            setPlacing(true);
+                            const res = await fetch("/api/order", {
+                                method:  "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    customer: {
+                                        name:    customerName.trim(),
+                                        address,
+                                        mobile:  customerPhone.trim(),
+                                        email:   "",
+                                        latitude:  "",
+                                        longitude: "",
+                                    },
+                                    items: items.map((item) => ({
+                                        petpoojaId: item.id,
+                                        name:       item.name,
+                                        price:      item.price,
+                                        quantity:   item.quantity,
+                                        addons:     (item.addons ?? []).map((a) => ({
+                                            petpoojaId: a.petpoojaId,
+                                            name:       a.name,
+                                            price:      a.price,
+                                        })),
+                                    })),
+                                    paymentType: "ONLINE",
+                                    orderType:   orderType,
+                                    razorpayPaymentId: response.razorpay_payment_id,
+                                    razorpayOrderId: response.razorpay_order_id,
+                                    razorpaySignature: response.razorpay_signature,
+                                }),
+                            });
+
+                            const data = await res.json();
+
+                            if (!data.success) {
+                                throw new Error(data.error ?? "Order placement failed after payment");
+                            }
+
+                            setSwiped(true);
+                            clearCart();
+                            setTimeout(() => {
+                                router.push(`/track/${data.orderId}`);
+                            }, 1500);
+                        } catch (err) {
+                            setError(err instanceof Error ? err.message : "Payment verification failed. Please contact support.");
+                            setPlacing(false);
+                            animate(dragX, 0, { type: "spring", stiffness: 300 });
+                        }
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            setError("Payment cancelled. You can retry paying.");
+                            setPlacing(false);
+                            animate(dragX, 0, { type: "spring", stiffness: 300 });
+                        },
+                    },
+                };
+
+                const rzp = new (window as any).Razorpay(options);
+                rzp.open();
             }
-
-            setSwiped(true);
-            clearCart();
-            setTimeout(() => {
-                router.push(`/track/${data.orderId}`);
-            }, 1500);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Order placement failed. Please try again.");
             setPlacing(false);
@@ -362,25 +492,85 @@ export default function Checkout() {
                     </div>
                 </motion.section>
 
-                {/* Payment */}
+                {/* Payment Method Selector */}
                 <motion.section
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                     className="bg-white dark:bg-slate-900/80 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-800"
                 >
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-2 mb-4">
                         <span className="material-symbols-outlined text-royal-blue dark:text-primary text-xl">payments</span>
-                        <h2 className="font-bold text-slate-800 dark:text-slate-200">Payment</h2>
+                        <h2 className="font-bold text-slate-800 dark:text-slate-200">Payment Method</h2>
                     </div>
-                    <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-3.5">
-                        <span className="material-symbols-outlined text-green-600 text-xl">currency_rupee</span>
-                        <div>
-                            <p className="font-bold text-sm text-slate-800 dark:text-slate-200">Cash on Delivery</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Pay when your order arrives</p>
+
+                    <div className="space-y-3">
+                        {/* Pay Online */}
+                        <div
+                            onClick={() => { setPaymentMethod("ONLINE"); setError(""); }}
+                            className={`flex items-start gap-3.5 rounded-2xl p-4 border transition-all duration-300 cursor-pointer ${
+                                paymentMethod === "ONLINE"
+                                    ? "bg-primary/5 dark:bg-primary/10 border-primary shadow-[0_0_12px_rgba(244,112,20,0.12)]"
+                                    : "bg-slate-50/50 dark:bg-slate-800/30 border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700"
+                            }`}
+                        >
+                            <span className={`material-symbols-outlined text-2xl mt-0.5 transition-colors ${paymentMethod === "ONLINE" ? "text-primary" : "text-slate-400 dark:text-slate-500"}`}>
+                                credit_card
+                            </span>
+                            <div className="flex-1">
+                                <p className={`font-bold text-sm leading-snug transition-colors ${paymentMethod === "ONLINE" ? "text-slate-800 dark:text-white" : "text-slate-600 dark:text-slate-400"}`}>
+                                    Pay Online (UPI, Cards, Netbanking)
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    Secure online payment powered by Razorpay
+                                </p>
+                            </div>
+                            <div className={`w-5.5 h-5.5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                                paymentMethod === "ONLINE"
+                                    ? "border-primary"
+                                    : "border-slate-300 dark:border-slate-600"
+                            }`}>
+                                {paymentMethod === "ONLINE" && (
+                                    <motion.div
+                                        layoutId="activePaymentIndicator"
+                                        className="w-3 h-3 bg-primary rounded-full"
+                                    />
+                                )}
+                            </div>
                         </div>
-                        <div className="ml-auto w-5 h-5 rounded-full border-2 border-green-500 flex items-center justify-center">
-                            <div className="w-2.5 h-2.5 bg-green-500 rounded-full" />
+
+                        {/* Cash on Delivery */}
+                        <div
+                            onClick={() => { setPaymentMethod("COD"); setError(""); }}
+                            className={`flex items-start gap-3.5 rounded-2xl p-4 border transition-all duration-300 cursor-pointer ${
+                                paymentMethod === "COD"
+                                    ? "bg-primary/5 dark:bg-primary/10 border-primary shadow-[0_0_12px_rgba(244,112,20,0.12)]"
+                                    : "bg-slate-50/50 dark:bg-slate-800/30 border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700"
+                            }`}
+                        >
+                            <span className={`material-symbols-outlined text-2xl mt-0.5 transition-colors ${paymentMethod === "COD" ? "text-primary" : "text-slate-400 dark:text-slate-500"}`}>
+                                currency_rupee
+                            </span>
+                            <div className="flex-1">
+                                <p className={`font-bold text-sm leading-snug transition-colors ${paymentMethod === "COD" ? "text-slate-800 dark:text-white" : "text-slate-600 dark:text-slate-400"}`}>
+                                    Cash on Delivery (COD)
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    Pay when your order is picked up
+                                </p>
+                            </div>
+                            <div className={`w-5.5 h-5.5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                                paymentMethod === "COD"
+                                    ? "border-primary"
+                                    : "border-slate-300 dark:border-slate-600"
+                            }`}>
+                                {paymentMethod === "COD" && (
+                                    <motion.div
+                                        layoutId="activePaymentIndicator"
+                                        className="w-3 h-3 bg-primary rounded-full"
+                                    />
+                                )}
+                            </div>
                         </div>
                     </div>
                 </motion.section>

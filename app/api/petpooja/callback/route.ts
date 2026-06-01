@@ -46,6 +46,13 @@ export async function POST(req: NextRequest) {
 
   console.log('[callback] PARSED BODY', body);
 
+  // Validate app_key against env secret — still return OK so Petpooja doesn't retry
+  const expectedKey = process.env.PETPOOJA_APP_KEY;
+  if (expectedKey && body.app_key !== expectedKey) {
+    console.warn('[callback] Invalid app_key — request ignored');
+    return OK;
+  }
+
   // Accept all known field name variants.
   const orderId    = (body.order_id    ?? body.orderID    ?? '') as string;
   const statusCode = (body.callback_order_status ?? body.status ?? '') as string;

@@ -21,8 +21,8 @@ export async function POST(
     return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
   }
 
-  // Ownership check — userId is nullable for legacy orders, so only enforce when set
-  if (order.userId && order.userId !== authUser.id) {
+  // Ownership check — userId is nullable for guest orders, so only enforce when set
+  if (order.userId && order.userId !== authUser.userId) {
     return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
   }
 

@@ -38,6 +38,13 @@ export async function POST(req: NextRequest) {
       body = await req.json();
     }
 
+    // Validate app_key against env secret
+    const expectedKey = process.env.PETPOOJA_APP_KEY;
+    if (expectedKey && body.app_key !== expectedKey) {
+      console.warn('[pushmenu] Invalid app_key — request rejected');
+      return NextResponse.json({ status: '0', message: 'Unauthorized' }, { status: 401 });
+    }
+
     // STEP 1 — Store the restaurant ID from Petpooja's push menu payload.
     // Petpooja sends restaurantid in restaurants[0] — this is the value that
     // must be echoed back as restID in every Save Order call.

@@ -9,6 +9,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { saveOrder, type InputOrderItem, type InputTaxDetail } from '@/services/petpooja/save-order';
 import { getAuthUserFromRequest } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rate-limit';
+import crypto from 'crypto';
 
 interface InboundAddon {
   petpoojaId: string;
@@ -39,10 +41,20 @@ interface OrderRequest {
   orderType: 'H' | 'P' | 'D';
   discount?: number;
   packingCharges?: number;
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
+  razorpaySignature?: string;
 }
 
 export async function POST(req: NextRequest) {
   const authUser = await getAuthUserFromRequest(req);
+
+  // Rate limit: 10 orders per hour per IP
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? req.headers.get('x-real-ip') ?? 'unknown';
+  const rl = await checkRateLimit(`order:ip:${ip}`, 10, 60 * 60 * 1000);
+  if (!rl.allowed) {
+    return NextResponse.json({ success: false, error: 'Too many orders. Please try again later.' }, { status: 429 });
+  }
 
   let body: OrderRequest;
   try {
@@ -56,6 +68,30 @@ export async function POST(req: NextRequest) {
       { success: false, error: 'customer.name, customer.mobile, and at least one item are required' },
       { status: 400 },
     );
+  }
+
+  // ── Verify online payment details ────────────────────────────────────────
+  if (body.paymentType === 'ONLINE') {
+    if (!body.razorpayPaymentId || !body.razorpayOrderId || !body.razorpaySignature) {
+      return NextResponse.json(
+        { success: false, error: 'Razorpay payment details are missing' },
+        { status: 400 },
+      );
+    }
+
+    const sign = body.razorpayOrderId + "|" + body.razorpayPaymentId;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+      .update(sign)
+      .digest("hex");
+
+    if (body.razorpaySignature !== expectedSignature) {
+      console.error('[order] Razorpay payment signature verification failed');
+      return NextResponse.json(
+        { success: false, error: 'Invalid payment signature. Payment verification failed.' },
+        { status: 400 },
+      );
+    }
   }
 
   // ── Order cap: max 3 items per order ─────────────────────────────────────
@@ -81,7 +117,7 @@ export async function POST(req: NextRequest) {
   const [knownItems, knownVariants] = await Promise.all([
     prisma.menuItem.findMany({
       where: { petpoojaId: { in: inboundIds } },
-      select: { petpoojaId: true, name: true },
+      select: { petpoojaId: true, name: true, price: true },
     }),
     prisma.menuVariant.findMany({
       where: { petpoojaId: { in: inboundIds } },
@@ -94,6 +130,7 @@ export async function POST(req: NextRequest) {
   ]);
 
   const itemNameMap = new Map(knownItems.map((r) => [r.petpoojaId, r.name]));
+  const itemPriceMap = new Map(knownItems.map((r) => [r.petpoojaId, r.price]));
   // Map variantPetpoojaId → display name "ParentName - VariantName"
   const variantNameMap = new Map(
     knownVariants.map((r) => [r.petpoojaId, `${r.item.name} - ${r.name}`]),
@@ -195,7 +232,7 @@ export async function POST(req: NextRequest) {
 
   for (const item of body.items) {
     let itemId         = item.petpoojaId;
-    let unitPrice      = item.price;
+    let unitPrice      = itemPriceMap.get(item.petpoojaId) ?? item.price;
     let variationId: string | undefined;
     let variationName: string | undefined;
 
@@ -365,6 +402,11 @@ export async function POST(req: NextRequest) {
       orderType:       body.orderType,
       tokenNumber:     isTakeaway ? tokenNumber : null,
       userId:          authUser?.userId ?? null,
+      paymentType:     body.paymentType,
+      paymentStatus:   body.paymentType === 'ONLINE' ? 'paid' : 'pending',
+      razorpayOrderId:   body.razorpayOrderId ?? null,
+      razorpayPaymentId: body.razorpayPaymentId ?? null,
+      razorpaySignature: body.razorpaySignature ?? null,
       items: {
         create: petpoojaItems.map((item) => ({
           name:     item.name,

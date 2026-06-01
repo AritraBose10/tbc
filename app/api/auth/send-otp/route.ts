@@ -53,6 +53,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Cooldown after exhausting OTP attempts — blocks re-request for 5 minutes
+    const cooldown = await prisma.rateLimit.findUnique({
+      where: { key: `otp:cooldown:${normalizedEmail}` },
+    });
+    if (cooldown && cooldown.resetAt > new Date()) {
+      const secsLeft = Math.ceil((cooldown.resetAt.getTime() - Date.now()) / 1000);
+      const minsLeft = Math.ceil(secsLeft / 60);
+      return NextResponse.json(
+        { error: `Too many failed attempts. Please wait ${minsLeft} minute${minsLeft === 1 ? "" : "s"} before requesting a new OTP.` },
+        { status: 429 }
+      );
+    }
+
     // Invalidate any existing OTP session for this email
     await prisma.otpSession.deleteMany({ where: { email: normalizedEmail } });
 

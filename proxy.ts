@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUserFromRequest } from "@/lib/auth";
 
-const PUBLIC_PATHS = ["/login"];
+const PUBLIC_PATHS = ["/", "/login", "/menu", "/dish", "/offers", "/support"];
 
 function isPublic(pathname: string): boolean {
   return (
-    PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/")) ||
+    pathname === "/" ||
+    PUBLIC_PATHS.some((p) => p !== "/" && (pathname === p || pathname.startsWith(p + "/"))) ||
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/") ||
-    pathname === "/favicon.ico"
+    pathname === "/favicon.ico" ||
+    pathname === "/icon.png"
   );
 }
 
