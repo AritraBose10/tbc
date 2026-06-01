@@ -46,10 +46,15 @@ export async function POST(req: NextRequest) {
 
   console.log('[callback] PARSED BODY', body);
 
-  // Validate app_key against env secret — still return OK so Petpooja doesn't retry
+  // Validate request — check that either app_key or restID matches our credentials
   const expectedKey = process.env.PETPOOJA_APP_KEY;
-  if (expectedKey && body.app_key !== expectedKey) {
-    console.warn('[callback] Invalid app_key — request ignored');
+  const expectedRestId = process.env.PETPOOJA_REST_MAP_ID;
+
+  const isValidKey = expectedKey && body.app_key === expectedKey;
+  const isValidRestId = expectedRestId && body.restID === expectedRestId;
+
+  if (!isValidKey && !isValidRestId) {
+    console.warn('[callback] Webhook validation failed (invalid app_key and restID) — request ignored');
     return OK;
   }
 

@@ -232,6 +232,8 @@ export const PETPOOJA_ORDER_STATUS: Record<string, string> = {
   '3':  'food_ready',
   '4':  'dispatched',
   '5':  'delivered',
+  '10': 'dispatched', // Out for delivery / Rider assigned
+  '11': 'delivered',  // Delivered
 };
 
 export interface OrderCallbackPayload {
