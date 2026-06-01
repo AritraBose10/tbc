@@ -127,6 +127,7 @@ export default function TrackOrder() {
                                 : !order   ? "Loading…"
                                 : isCancelled ? "Order Cancelled"
                                 : currentStep === 1 ? "Waiting for Confirmation"
+                                : currentStep === 3 ? (isTakeaway ? "Ready for Pickup" : "On the Way")
                                 : currentStep === 4 ? (isTakeaway ? "Picked Up" : "Delivered")
                                 : prepTime ? `Ready in ~${prepTime} min`
                                 : "Preparing Order"}
