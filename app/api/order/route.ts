@@ -11,6 +11,7 @@ import { saveOrder, type InputOrderItem, type InputTaxDetail } from '@/services/
 import { getAuthUserFromRequest } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import crypto from 'crypto';
+import Razorpay from 'razorpay';
 
 interface InboundAddon {
   petpoojaId: string;
@@ -79,17 +80,52 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const sign = body.razorpayOrderId + "|" + body.razorpayPaymentId;
+    // Step 1: Verify HMAC signature (tamper-proof check)
+    const sign = body.razorpayOrderId + '|' + body.razorpayPaymentId;
     const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
       .update(sign)
-      .digest("hex");
+      .digest('hex');
 
     if (body.razorpaySignature !== expectedSignature) {
       console.error('[order] Razorpay payment signature verification failed');
       return NextResponse.json(
-        { success: false, error: 'Invalid payment signature. Payment verification failed.' },
+        { success: false, error: 'Payment verification failed. Signature mismatch.' },
         { status: 400 },
+      );
+    }
+
+    // Step 2: Fetch payment from Razorpay API and confirm it is 'captured'
+    try {
+      const razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID!,
+        key_secret: process.env.RAZORPAY_KEY_SECRET!,
+      });
+
+      const payment = await razorpay.payments.fetch(body.razorpayPaymentId);
+
+      if (payment.status !== 'captured') {
+        console.error(`[order] Razorpay payment ${body.razorpayPaymentId} status is '${payment.status}', not 'captured'`);
+        return NextResponse.json(
+          { success: false, error: `Payment not confirmed. Status: ${payment.status}. Please contact support if money was deducted.` },
+          { status: 400 },
+        );
+      }
+
+      if (payment.order_id !== body.razorpayOrderId) {
+        console.error(`[order] Razorpay payment order_id mismatch: expected ${body.razorpayOrderId}, got ${payment.order_id}`);
+        return NextResponse.json(
+          { success: false, error: 'Payment order ID mismatch. Payment verification failed.' },
+          { status: 400 },
+        );
+      }
+
+      console.log(`[order] Razorpay payment ${body.razorpayPaymentId} verified: status=${payment.status}, amount=${payment.amount}`);
+    } catch (err) {
+      console.error('[order] Failed to fetch payment from Razorpay API:', err);
+      return NextResponse.json(
+        { success: false, error: 'Could not verify payment with Razorpay. Please try again or contact support.' },
+        { status: 500 },
       );
     }
   }
