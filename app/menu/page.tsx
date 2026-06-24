@@ -30,12 +30,20 @@ const isVariantOnly = (item: LiveMenuItem) =>
 
 function MenuContent() {
     const searchParams = useSearchParams();
-    const categoryParam = searchParams.get("category");
-    const maxPriceParam = searchParams.get("maxPrice");
+    const categoryParam  = searchParams.get("category");
+    const maxPriceParam  = searchParams.get("maxPrice");
+    const minPriceParam  = searchParams.get("minPrice");
+    const spicyParam     = searchParams.get("spicy");
+    const popularParam   = searchParams.get("popular");
+    const sortParam      = searchParams.get("sort");
 
     const [searchQuery, setSearchQuery]         = useState("");
     const [activeCategory, setActiveCategory]   = useState("All");
     const [maxPrice, setMaxPrice]               = useState<number | null>(null);
+    const [minPrice, setMinPrice]               = useState<number | null>(null);
+    const [filterSpicy, setFilterSpicy]         = useState(false);
+    const [filterPopular, setFilterPopular]     = useState(false);
+    const [sortOrder, setSortOrder]             = useState("default");
     const [hydrated, setHydrated]               = useState(false);
     const [menuItems, setMenuItems]             = useState<LiveMenuItem[]>([]);
     const [loading, setLoading]                 = useState(true);
@@ -52,7 +60,11 @@ function MenuContent() {
         const qParam = searchParams.get("q");
         if (qParam) setSearchQuery(qParam);
         setMaxPrice(maxPriceParam ? Number(maxPriceParam) : null);
-    }, [categoryParam, maxPriceParam, searchParams]);
+        setMinPrice(minPriceParam ? Number(minPriceParam) : null);
+        setFilterSpicy(spicyParam === "true");
+        setFilterPopular(popularParam === "true");
+        setSortOrder(sortParam ?? "default");
+    }, [categoryParam, maxPriceParam, minPriceParam, spicyParam, popularParam, sortParam, searchParams]);
 
     useEffect(() => {
         const es = new EventSource("/api/menu/events");
@@ -106,15 +118,30 @@ function MenuContent() {
         );
     };
 
+    const SPICY_KEYWORDS  = ["spicy", "peri", "schezwan", "chilli", "chili", "pepper", "hot", "tikka", "masala", "jalapeño", "sriracha", "dynamite"];
+    const POPULAR_CATS    = ["Biryani Special", "Kathi Rolls", "Burgers", "Pizzas"];
+
     const filteredItems = useMemo(() => {
-        return menuItems.filter((item) => {
-            const matchesSearch   = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+        let items = menuItems.filter((item) => {
+            const name            = item.name.toLowerCase();
+            const matchesSearch   = name.includes(searchQuery.toLowerCase());
             const matchesCategory = activeCategory === "All" || item.categoryName === activeCategory;
             const matchesVeg      = !isVegOnly || item.isVeg;
-            const matchesPrice    = maxPrice === null || item.price <= maxPrice;
-            return matchesSearch && matchesCategory && matchesVeg && matchesPrice;
+            const matchesMaxPrice = maxPrice === null || item.price <= maxPrice;
+            const matchesMinPrice = minPrice === null || item.price >= minPrice;
+            const matchesSpicy    = !filterSpicy  || SPICY_KEYWORDS.some((kw) => name.includes(kw));
+            const matchesPopular  = !filterPopular || POPULAR_CATS.includes(item.categoryName);
+            return matchesSearch && matchesCategory && matchesVeg && matchesMaxPrice && matchesMinPrice && matchesSpicy && matchesPopular;
         });
-    }, [searchQuery, activeCategory, isVegOnly, maxPrice, menuItems]);
+
+        if (sortOrder === "price_asc")  items = [...items].sort((a, b) => a.price - b.price);
+        if (sortOrder === "price_desc") items = [...items].sort((a, b) => b.price - a.price);
+        if (sortOrder === "name")       items = [...items].sort((a, b) => a.name.localeCompare(b.name));
+        if (sortOrder === "top")        items = [...items].sort((a, b) => (b.isAvailable ? 1 : 0) - (a.isAvailable ? 1 : 0) || b.price - a.price);
+
+        return items;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchQuery, activeCategory, isVegOnly, maxPrice, minPrice, filterSpicy, filterPopular, sortOrder, menuItems]);
 
     if (loading) {
         return (
