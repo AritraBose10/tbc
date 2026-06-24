@@ -195,6 +195,11 @@ function MenuContent() {
                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
                                             {item.categoryName}
                                         </span>
+                                        {!item.isAvailable && (
+                                            <span className="ml-1 px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 rounded-full text-[9px] font-black uppercase tracking-widest shrink-0">
+                                                Sold Out
+                                            </span>
+                                        )}
                                     </div>
 
                                     <h3 className="text-sm font-black text-terracotta dark:text-terracotta mb-1 line-clamp-2">
@@ -208,9 +213,8 @@ function MenuContent() {
 
                                 <div className="flex items-center flex-shrink-0">
                                     {!item.isAvailable ? (
-                                        /* Out of stock — disabled pill */
                                         <span className="h-10 px-4 flex items-center bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest">
-                                            Out of Stock
+                                            Sold Out
                                         </span>
                                     ) : variantOnly ? (
                                         /* Variant-only: always open the picker */

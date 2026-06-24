@@ -6,7 +6,6 @@ import { useState } from "react";
 export default function FiltersRow() {
     const [filters, setFilters] = useState([
         { id: "sort", label: "Filters", icon: "tune", active: false },
-        { id: "fast", label: "Near & Fast", icon: "bolt", active: true },
         { id: "loved", label: "Loved by friends", icon: "diversity_1", active: false },
         { id: "spicy", label: "Spicy", icon: "local_fire_department", active: false },
         { id: "offers", label: "Great Offers", icon: "sell", active: false },
