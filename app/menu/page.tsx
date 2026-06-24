@@ -31,9 +31,11 @@ const isVariantOnly = (item: LiveMenuItem) =>
 function MenuContent() {
     const searchParams = useSearchParams();
     const categoryParam = searchParams.get("category");
+    const maxPriceParam = searchParams.get("maxPrice");
 
     const [searchQuery, setSearchQuery]         = useState("");
     const [activeCategory, setActiveCategory]   = useState("All");
+    const [maxPrice, setMaxPrice]               = useState<number | null>(null);
     const [hydrated, setHydrated]               = useState(false);
     const [menuItems, setMenuItems]             = useState<LiveMenuItem[]>([]);
     const [loading, setLoading]                 = useState(true);
@@ -49,7 +51,8 @@ function MenuContent() {
         if (categoryParam) setActiveCategory(categoryParam);
         const qParam = searchParams.get("q");
         if (qParam) setSearchQuery(qParam);
-    }, [categoryParam, searchParams]);
+        setMaxPrice(maxPriceParam ? Number(maxPriceParam) : null);
+    }, [categoryParam, maxPriceParam, searchParams]);
 
     useEffect(() => {
         const es = new EventSource("/api/menu/events");
@@ -108,9 +111,10 @@ function MenuContent() {
             const matchesSearch   = item.name.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesCategory = activeCategory === "All" || item.categoryName === activeCategory;
             const matchesVeg      = !isVegOnly || item.isVeg;
-            return matchesSearch && matchesCategory && matchesVeg;
+            const matchesPrice    = maxPrice === null || item.price <= maxPrice;
+            return matchesSearch && matchesCategory && matchesVeg && matchesPrice;
         });
-    }, [searchQuery, activeCategory, isVegOnly, menuItems]);
+    }, [searchQuery, activeCategory, isVegOnly, maxPrice, menuItems]);
 
     if (loading) {
         return (

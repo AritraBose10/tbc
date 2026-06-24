@@ -28,7 +28,7 @@ function CategoryStyleContent() {
                 <div className="w-2 shrink-0" />
 
                 {/* Special Offer Tile */}
-                <Link href="/menu">
+                <Link href="/menu?maxPrice=150">
                     <motion.div
                         whileHover={{ y: -2 }}
                         className="flex flex-col items-center justify-center min-w-[88px] shrink-0 snap-start cursor-pointer group"
@@ -36,7 +36,7 @@ function CategoryStyleContent() {
                         <div className="w-full h-[72px] bg-[#0A2647] dark:bg-royal-blue rounded-2xl flex flex-col items-center justify-center text-white shadow-md relative overflow-hidden group-hover:shadow-lg transition-shadow border border-white/10 mb-6">
                             <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent" />
                             <span className="text-[7px] font-black uppercase tracking-widest mb-0.5 z-10 text-white">Meals Under</span>
-                            <span className="text-xl font-black z-10 text-primary drop-shadow-md">₹250</span>
+                            <span className="text-xl font-black z-10 text-primary drop-shadow-md">₹150</span>
                             <div className="text-[7px] bg-white text-[#0A2647] px-2 py-0.5 rounded-full mt-1 font-black z-10 flex items-center shadow-lg">
                                 EXPLORE <span className="material-symbols-outlined text-[8px] ml-0.5 font-black">chevron_right</span>
                             </div>
