@@ -102,8 +102,18 @@ function Column({
   );
 }
 
+const TEST_DATA: DisplayData = {
+  preparing: [
+    { id: "test-1", tokenNumber: "42", status: "preparing", createdAt: new Date().toISOString() },
+    { id: "test-2", tokenNumber: "43", status: "accepted",  createdAt: new Date().toISOString() },
+  ],
+  ready: [
+    { id: "test-3", tokenNumber: "41", status: "ready", createdAt: new Date().toISOString() },
+  ],
+};
+
 export default function DisplayBoard() {
-  const [data,      setData]      = useState<DisplayData>({ preparing: [], ready: [] });
+  const [data,      setData]      = useState<DisplayData>(TEST_DATA);
   const [lastFetch, setLastFetch] = useState<Date | null>(null);
   const [, setTick] = useState(0);
 
@@ -111,7 +121,8 @@ export default function DisplayBoard() {
     try {
       const res  = await fetch("/api/display/orders", { cache: "no-store" });
       const json = await res.json() as DisplayData;
-      setData(json);
+      const hasRealOrders = json.preparing.length > 0 || json.ready.length > 0;
+      setData(hasRealOrders ? json : TEST_DATA);
       setLastFetch(new Date());
     } catch {
       // silent retry
