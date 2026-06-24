@@ -50,6 +50,10 @@ interface OrderRequest {
 export async function POST(req: NextRequest) {
   const authUser = await getAuthUserFromRequest(req);
 
+  if (!authUser) {
+    return NextResponse.json({ success: false, error: 'You must be logged in to place an order.' }, { status: 401 });
+  }
+
   // Rate limit: 10 orders per hour per IP
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? req.headers.get('x-real-ip') ?? 'unknown';
   const rl = await checkRateLimit(`order:ip:${ip}`, 10, 60 * 60 * 1000);

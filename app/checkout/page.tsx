@@ -56,16 +56,19 @@ export default function Checkout() {
         });
     };
 
-    // Pre-fill name and phone from profile if the user is signed in
+    // Require login — redirect to /login if not authenticated
     useEffect(() => {
         fetch("/api/auth/me")
             .then((r) => r.ok ? r.json() : null)
             .then((data) => {
-                if (!data?.user) return;
+                if (!data?.user) {
+                    router.replace("/login?next=/checkout");
+                    return;
+                }
                 if (!customerName && data.user.name)  setCustomerName(data.user.name);
                 if (!customerPhone && data.user.phone) setCustomerPhone(data.user.phone);
             })
-            .catch(() => {});
+            .catch(() => router.replace("/login?next=/checkout"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
