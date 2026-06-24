@@ -363,6 +363,17 @@ export default function DisplayBoard() {
     setTransitItems(prev => prev.filter(t => t.key !== key));
   }, []);
 
+  const restoreDemo = useCallback(() => {
+    demoRunning.current = true; // block demo while resetting
+    setTransitItems([]);
+    setNewReadyIds(new Set());
+    prevPreparingIds.current    = new Set(DEMO_BASE.preparing.map(o => o.id));
+    prevPreparingOrders.current = new Map(DEMO_BASE.preparing.map(o => [o.id, o]));
+    setData(DEMO_BASE);
+    demoStep.current    = 0;
+    demoRunning.current = false;
+  }, []);
+
   const now     = new Date();
   const timeStr = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true });
 
@@ -444,13 +455,22 @@ export default function DisplayBoard() {
           </p>
         </div>
 
-        <button
-          onClick={runDemo}
-          className="text-xs font-mono font-black tracking-widest uppercase px-4 py-1.5 rounded-lg border border-white/10 text-white/40 hover:text-amber-400 hover:border-amber-500/40 transition-all duration-300"
-          style={{ letterSpacing: "0.15em" }}
-        >
-          ▶ DEMO
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={restoreDemo}
+            className="text-xs font-mono font-black tracking-widest uppercase px-4 py-1.5 rounded-lg border border-white/10 text-white/40 hover:text-white/70 hover:border-white/20 transition-all duration-300"
+            style={{ letterSpacing: "0.15em" }}
+          >
+            ↺ RESTORE
+          </button>
+          <button
+            onClick={runDemo}
+            className="text-xs font-mono font-black tracking-widest uppercase px-4 py-1.5 rounded-lg border border-white/10 text-white/40 hover:text-amber-400 hover:border-amber-500/40 transition-all duration-300"
+            style={{ letterSpacing: "0.15em" }}
+          >
+            ▶ DEMO
+          </button>
+        </div>
       </div>
     </main>
   );
