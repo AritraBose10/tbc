@@ -75,9 +75,12 @@ export default function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const subtotal = getSubtotal();
-    const taxes    = getTax();
-    const total    = getTotal();
+    const subtotal      = getSubtotal();
+    const taxes         = getTax();
+    const total         = getTotal();
+    const PARCEL_CHARGE = 15;
+    const parcelCharge  = prepType === "Parcel" ? PARCEL_CHARGE : 0;
+    const grandTotal    = total + parcelCharge;
 
     const dragX  = useMotionValue(0);
     const dragBg = useTransform(dragX, [0, 250], ["rgba(178,34,34,1)", "rgba(34,139,34,1)"]);
@@ -148,9 +151,10 @@ export default function Checkout() {
                                 price:      a.price,
                             })),
                         })),
-                        paymentType:  "COD",
-                        orderType:    orderType,
-                        description:  prepType,
+                        paymentType:     "COD",
+                        orderType:       orderType,
+                        description:     prepType,
+                        packingCharges:  parcelCharge,
                     }),
                 });
 
@@ -261,9 +265,10 @@ export default function Checkout() {
                                             price:      a.price,
                                         })),
                                     })),
-                                    paymentType:  "ONLINE",
-                                    orderType:    orderType,
-                                    description:  prepType,
+                                    paymentType:     "ONLINE",
+                                    orderType:       orderType,
+                                    description:     prepType,
+                                    packingCharges:  parcelCharge,
                                     razorpayPaymentId: response.razorpay_payment_id,
                                     razorpayOrderId: response.razorpay_order_id,
                                     razorpaySignature: response.razorpay_signature,
@@ -545,10 +550,16 @@ export default function Checkout() {
                             <span>Delivery</span>
                             <span className="text-green-600 font-bold">FREE</span>
                         </div>
+                        {parcelCharge > 0 && (
+                            <div className="flex justify-between text-slate-500 dark:text-slate-400">
+                                <span>Parcel charge</span>
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">&#8377;{parcelCharge.toFixed(2)}</span>
+                            </div>
+                        )}
                         <div className="flex justify-between items-center pt-1 border-t border-slate-100 dark:border-slate-800">
                             <span className="font-bold text-slate-800 dark:text-white">Total</span>
                             <span className="font-extrabold text-lg text-terracotta" style={{ fontFamily: "system-ui, sans-serif" }}>
-                                &#8377;{total.toFixed(2)}
+                                &#8377;{grandTotal.toFixed(2)}
                             </span>
                         </div>
                     </div>
@@ -659,7 +670,7 @@ export default function Checkout() {
                 <div className="flex justify-between items-center mb-4 px-1">
                     <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Amount to Pay</span>
                     <span className="text-2xl font-extrabold text-royal-blue dark:text-white" style={{ fontFamily: "system-ui, sans-serif" }}>
-                        &#8377;{total.toFixed(2)}
+                        &#8377;{grandTotal.toFixed(2)}
                     </span>
                 </div>
 
