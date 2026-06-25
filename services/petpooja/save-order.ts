@@ -201,7 +201,7 @@ export async function saveOrder(
             tax_total: input.taxTotal.toFixed(2),
             discount_type: input.discountType,
             total: input.total.toFixed(2),
-            description: "",
+            description: "Ready to eat",
             created_on: createdOn,
             enable_delivery: input.enableDelivery,
             min_prep_time: parseInt(process.env.PETPOOJA_MIN_PREP_TIME ?? '20', 10),
