@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, useRef } from "react";
 
 /* ─── types ─────────────────────────────────────────────────────────── */
 interface DisplayOrder {
-  id:          string;
   tokenNumber: string | null;
   status:      string;
   createdAt:   string;
@@ -20,7 +19,11 @@ interface TransitItem {
 
 /* ─── helpers ────────────────────────────────────────────────────────── */
 function tokenLabel(o: DisplayOrder) {
-  return o.tokenNumber ?? o.id.slice(-4).toUpperCase();
+  return o.tokenNumber ?? "----";
+}
+/** Stable unique key per order — avoids exposing internal UUIDs */
+function oKey(o: DisplayOrder) {
+  return o.tokenNumber ?? o.createdAt;
 }
 
 const TRANSIT_MS   = 2400;   // duration of the fly animation
@@ -29,20 +32,25 @@ const LINGER_MS    = 600;    // extra before we remove the overlay entry
 /* ─── test / demo data ───────────────────────────────────────────────── */
 const DEMO_BASE: DisplayData = {
   preparing: [
-    { id: "test-1", tokenNumber: "42", status: "preparing", createdAt: "" },
-    { id: "test-2", tokenNumber: "43", status: "accepted",  createdAt: "" },
+    { tokenNumber: "42", status: "preparing", createdAt: "demo-1" },
+    { tokenNumber: "43", status: "accepted",  createdAt: "demo-2" },
   ],
   ready: [
-    { id: "test-3", tokenNumber: "41", status: "ready", createdAt: "" },
+    { tokenNumber: "41", status: "ready", createdAt: "demo-3" },
   ],
 };
 
 /* ─── transit overlay card ───────────────────────────────────────────── */
 function TransitCard({ label, onDone }: { label: string; onDone: () => void }) {
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+
   useEffect(() => {
-    const t = setTimeout(onDone, TRANSIT_MS + LINGER_MS);
+    const t = setTimeout(() => onDoneRef.current(), TRANSIT_MS + LINGER_MS);
     return () => clearTimeout(t);
-  }, [onDone]);
+  // empty deps — timer runs once on mount, ref keeps onDone current
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -218,10 +226,10 @@ function Column({
         >
           {orders.map((order) => (
             <TokenCard
-              key={order.id}
+              key={oKey(order)}
               order={order}
               highlight={highlight}
-              appearing={newIds.has(order.id)}
+              appearing={newIds.has(oKey(order))}
             />
           ))}
         </div>
@@ -239,14 +247,15 @@ export default function DisplayBoard() {
   const [, setTick] = useState(0);
 
   // refs to detect transitions between polls
-  const prevPreparingIds    = useRef<Set<string>>(new Set(DEMO_BASE.preparing.map(o => o.id)));
+  const prevPreparingIds    = useRef<Set<string>>(new Set(DEMO_BASE.preparing.map(oKey)));
   const prevPreparingOrders = useRef<Map<string, DisplayOrder>>(
-    new Map(DEMO_BASE.preparing.map(o => [o.id, o]))
+    new Map(DEMO_BASE.preparing.map(o => [oKey(o), o]))
   );
+  const newReadyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const applyData = useCallback((incoming: DisplayData) => {
-    const newPrepIds  = new Set(incoming.preparing.map(o => o.id));
-    const newReadySet = new Set(incoming.ready.map(o => o.id));
+    const newPrepIds  = new Set(incoming.preparing.map(oKey));
+    const newReadySet = new Set(incoming.ready.map(oKey));
 
     // detect orders that moved preparing → ready
     const transitioned: TransitItem[] = [];
@@ -254,23 +263,25 @@ export default function DisplayBoard() {
       if (!newPrepIds.has(id) && newReadySet.has(id)) {
         const order = prevPreparingOrders.current.get(id);
         if (order) {
-          transitioned.push({ key: `${id}-${Date.now()}`, label: tokenLabel(order) });
+          transitioned.push({ key: `${id}~${Date.now()}`, label: tokenLabel(order) });
         }
       }
     }
 
     prevPreparingIds.current    = newPrepIds;
-    prevPreparingOrders.current = new Map(incoming.preparing.map(o => [o.id, o]));
+    prevPreparingOrders.current = new Map(incoming.preparing.map(o => [oKey(o), o]));
 
     setData(incoming);
 
     if (transitioned.length > 0) {
       // mark newly-ready cards so they fade in after transit lands
-      setNewReadyIds(new Set(transitioned.map(t => t.key.split("-")[0] + "-" + t.key.split("-")[1])));
+      setNewReadyIds(new Set(transitioned.map(t => t.key.split("~")[0])));
       setTransitItems(prev => [...prev, ...transitioned]);
 
-      setTimeout(() => {
+      if (newReadyTimer.current) clearTimeout(newReadyTimer.current);
+      newReadyTimer.current = setTimeout(() => {
         setNewReadyIds(new Set());
+        newReadyTimer.current = null;
       }, TRANSIT_MS + 600);
     }
   }, []);
@@ -303,15 +314,15 @@ export default function DisplayBoard() {
     // reset to full demo base first
     const base: DisplayData = {
       preparing: [
-        { id: "demo-A", tokenNumber: "42", status: "preparing", createdAt: "" },
-        { id: "demo-B", tokenNumber: "43", status: "accepted",  createdAt: "" },
+        { tokenNumber: "42", status: "preparing", createdAt: "demo-1" },
+        { tokenNumber: "43", status: "accepted",  createdAt: "demo-2" },
       ],
       ready: [
-        { id: "demo-C", tokenNumber: "41", status: "ready", createdAt: "" },
+        { tokenNumber: "41", status: "ready", createdAt: "demo-3" },
       ],
     };
-    prevPreparingIds.current    = new Set(base.preparing.map(o => o.id));
-    prevPreparingOrders.current = new Map(base.preparing.map(o => [o.id, o]));
+    prevPreparingIds.current    = new Set(base.preparing.map(oKey));
+    prevPreparingOrders.current = new Map(base.preparing.map(o => [oKey(o), o]));
     setData(base);
     setTransitItems([]);
     setNewReadyIds(new Set());
@@ -319,25 +330,25 @@ export default function DisplayBoard() {
     const steps: Array<() => DisplayData> = [
       // step 0 → 42 moves to ready
       () => ({
-        preparing: [{ id: "demo-B", tokenNumber: "43", status: "accepted", createdAt: "" }],
+        preparing: [{ tokenNumber: "43", status: "accepted", createdAt: "demo-2" }],
         ready:     [
-          { id: "demo-C", tokenNumber: "41", status: "ready",    createdAt: "" },
-          { id: "demo-A", tokenNumber: "42", status: "ready",    createdAt: "" },
+          { tokenNumber: "41", status: "ready",    createdAt: "demo-3" },
+          { tokenNumber: "42", status: "ready",    createdAt: "demo-1" },
         ],
       }),
       // step 1 → 43 moves to ready
       () => ({
         preparing: [],
         ready:     [
-          { id: "demo-C", tokenNumber: "41", status: "ready", createdAt: "" },
-          { id: "demo-A", tokenNumber: "42", status: "ready", createdAt: "" },
-          { id: "demo-B", tokenNumber: "43", status: "ready", createdAt: "" },
+          { tokenNumber: "41", status: "ready", createdAt: "demo-3" },
+          { tokenNumber: "42", status: "ready", createdAt: "demo-1" },
+          { tokenNumber: "43", status: "ready", createdAt: "demo-2" },
         ],
       }),
       // step 2 → reset
       () => {
-        prevPreparingIds.current    = new Set(base.preparing.map(o => o.id));
-        prevPreparingOrders.current = new Map(base.preparing.map(o => [o.id, o]));
+        prevPreparingIds.current    = new Set(base.preparing.map(oKey));
+        prevPreparingOrders.current = new Map(base.preparing.map(o => [oKey(o), o]));
         return base;
       },
     ];
@@ -367,8 +378,8 @@ export default function DisplayBoard() {
     demoRunning.current = true; // block demo while resetting
     setTransitItems([]);
     setNewReadyIds(new Set());
-    prevPreparingIds.current    = new Set(DEMO_BASE.preparing.map(o => o.id));
-    prevPreparingOrders.current = new Map(DEMO_BASE.preparing.map(o => [o.id, o]));
+    prevPreparingIds.current    = new Set(DEMO_BASE.preparing.map(oKey));
+    prevPreparingOrders.current = new Map(DEMO_BASE.preparing.map(o => [oKey(o), o]));
     setData(DEMO_BASE);
     demoStep.current    = 0;
     demoRunning.current = false;

@@ -41,7 +41,6 @@ interface OrderRequest {
   paymentType: 'COD' | 'CARD' | 'ONLINE';
   orderType: 'H' | 'P' | 'D';
   discount?: number;
-  packingCharges?: number;
   razorpayPaymentId?: string;
   razorpayOrderId?: string;
   razorpaySignature?: string;
@@ -76,7 +75,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const VALID_DESCRIPTIONS = ['Parcel', 'Ready to eat'] as const;
+  if (body.description !== undefined && !VALID_DESCRIPTIONS.includes(body.description as typeof VALID_DESCRIPTIONS[number])) {
+    return NextResponse.json({ success: false, error: 'Invalid description value.' }, { status: 400 });
+  }
+
   // ── Verify online payment details ────────────────────────────────────────
+  let verifiedRazorpayAmountPaise: number | null = null;
   if (body.paymentType === 'ONLINE') {
     if (!body.razorpayPaymentId || !body.razorpayOrderId || !body.razorpaySignature) {
       return NextResponse.json(
@@ -125,6 +130,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      verifiedRazorpayAmountPaise = Number(payment.amount);
       console.log(`[order] Razorpay payment ${body.razorpayPaymentId} verified: status=${payment.status}, amount=${payment.amount}`);
     } catch (err) {
       console.error('[order] Failed to fetch payment from Razorpay API:', err);
@@ -322,8 +328,8 @@ export async function POST(req: NextRequest) {
   // ── Phase 2: Discount-aware tax calculation ────────────────────────────────
   // GST is applied to the discounted amount, not the gross subtotal.
   const subtotal       = rawItems.reduce((s, i) => s + i.lineTotal, 0);
-  const discount       = body.discount      ?? 0;
-  const packingCharges = body.packingCharges ?? 0;
+  const discount       = body.discount ?? 0;
+  const packingCharges = body.description === 'Parcel' ? 15 : 0;
   const taxableAmount  = subtotal - discount;
 
   const petpoojaItems: InputOrderItem[] = rawItems.map((raw) => {
@@ -365,6 +371,15 @@ export async function POST(req: NextRequest) {
 
   const taxTotal = parseFloat((taxableAmount * (totalTaxRate / 100)).toFixed(2));
   const total    = parseFloat((taxableAmount + taxTotal + packingCharges).toFixed(2));
+
+  // ── Cross-check Razorpay captured amount against server-computed total ────
+  if (verifiedRazorpayAmountPaise !== null && verifiedRazorpayAmountPaise !== Math.round(total * 100)) {
+    console.error(`[order] Razorpay amount mismatch: captured=${verifiedRazorpayAmountPaise} paise, expected=${Math.round(total * 100)} paise`);
+    return NextResponse.json(
+      { success: false, error: 'Payment amount does not match the order total. Please contact support.' },
+      { status: 400 },
+    );
+  }
 
   // ── Tax details (one row per tax config entry, on discounted amount) ───────
   const taxDetails: InputTaxDetail[] = taxRows.map((tax) => ({

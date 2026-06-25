@@ -13,7 +13,6 @@ export async function GET() {
       status: { in: [...PREPARING_STATUSES, ...READY_STATUSES] },
     },
     select: {
-      id:          true,
       tokenNumber: true,
       status:      true,
       createdAt:   true,

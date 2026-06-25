@@ -13,6 +13,7 @@ export default function Checkout() {
     const { items, getSubtotal, getTax, getTotal, clearCart } = useCartStore();
     const { outOfStockIds } = useCartAvailability();
 
+    const [authed, setAuthed]   = useState<boolean | null>(null);
     const [swiped, setSwiped]   = useState(false);
     const [placing, setPlacing] = useState(false);
     const [error, setError]     = useState("");
@@ -68,6 +69,7 @@ export default function Checkout() {
                     router.replace("/login?next=/checkout");
                     return;
                 }
+                setAuthed(true);
                 if (!customerName && data.user.name)  setCustomerName(data.user.name);
                 if (!customerPhone && data.user.phone) setCustomerPhone(data.user.phone);
             })
@@ -193,6 +195,7 @@ export default function Checkout() {
                                 price:      a.price,
                             })),
                         })),
+                        packingCharges: parcelCharge,
                     }),
                 });
 
@@ -310,6 +313,8 @@ export default function Checkout() {
             animate(dragX, 0, { type: "spring", stiffness: 300 });
         }
     };
+
+    if (!authed) return null;
 
     return (
         <main className="bg-[#FFFDF0] dark:bg-background-dark min-h-screen pb-44">

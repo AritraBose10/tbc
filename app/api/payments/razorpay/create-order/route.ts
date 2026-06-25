@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import Razorpay from "razorpay";
+import { getAuthUserFromRequest } from "@/lib/auth";
 
 interface InboundAddon {
   petpoojaId: string;
@@ -24,6 +25,11 @@ interface CreateOrderRequest {
 }
 
 export async function POST(req: NextRequest) {
+  const authUser = await getAuthUserFromRequest(req);
+  if (!authUser) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
   let body: CreateOrderRequest;
   try {
     body = await req.json();
