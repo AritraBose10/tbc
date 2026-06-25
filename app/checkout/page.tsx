@@ -29,6 +29,9 @@ export default function Checkout() {
     // Order Type (H = Delivery, P = Takeaway) — delivery disabled until live
     const [orderType, setOrderType] = useState<"H" | "P">("P");
 
+    // Preparation preference — passed to Petpooja as order description
+    const [prepType, setPrepType] = useState<"Parcel" | "Ready to eat">("Parcel");
+
     // Payment method state
     const [paymentMethod, setPaymentMethod] = useState<"COD" | "ONLINE">("ONLINE");
 
@@ -145,8 +148,9 @@ export default function Checkout() {
                                 price:      a.price,
                             })),
                         })),
-                        paymentType: "COD",
-                        orderType:   orderType,
+                        paymentType:  "COD",
+                        orderType:    orderType,
+                        description:  prepType,
                     }),
                 });
 
@@ -257,8 +261,9 @@ export default function Checkout() {
                                             price:      a.price,
                                         })),
                                     })),
-                                    paymentType: "ONLINE",
-                                    orderType:   orderType,
+                                    paymentType:  "ONLINE",
+                                    orderType:    orderType,
+                                    description:  prepType,
                                     razorpayPaymentId: response.razorpay_payment_id,
                                     razorpayOrderId: response.razorpay_order_id,
                                     razorpaySignature: response.razorpay_signature,
@@ -348,6 +353,29 @@ export default function Checkout() {
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
                         className="absolute top-1 bottom-1 w-[calc(50%-6px)] bg-white dark:bg-primary rounded-xl shadow-sm z-0"
                         style={{ left: orderType === "H" ? "4px" : "calc(50% + 2px)" }}
+                    />
+                </div>
+
+                {/* Preparation Preference */}
+                <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl flex gap-1 relative shadow-inner">
+                    {(["Parcel", "Ready to eat"] as const).map((option) => (
+                        <button
+                            key={option}
+                            onClick={() => setPrepType(option)}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm z-10 transition-colors ${prepType === option ? "text-slate-800 dark:text-slate-900" : "text-slate-500 dark:text-slate-400"}`}
+                        >
+                            <span className="material-symbols-outlined text-[18px]">
+                                {option === "Parcel" ? "takeout_dining" : "restaurant"}
+                            </span>
+                            {option}
+                        </button>
+                    ))}
+                    <motion.div
+                        layout
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                        className="absolute top-1 bottom-1 w-[calc(50%-6px)] bg-white dark:bg-primary rounded-xl shadow-sm z-0"
+                        style={{ left: prepType === "Parcel" ? "4px" : "calc(50% + 2px)" }}
                     />
                 </div>
 

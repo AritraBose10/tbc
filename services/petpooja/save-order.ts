@@ -89,6 +89,9 @@ export interface SaveOrderInput {
   /** Full URL that Petpooja will POST order status updates to */
   callbackUrl: string;
 
+  /** Visible to the merchant — e.g. "Parcel" or "Ready to eat" */
+  description?: string;
+
   items: InputOrderItem[];
   taxDetails: InputTaxDetail[];
 
@@ -201,7 +204,7 @@ export async function saveOrder(
             tax_total: input.taxTotal.toFixed(2),
             discount_type: input.discountType,
             total: input.total.toFixed(2),
-            description: "Ready to eat",
+            description: input.description ?? "",
             created_on: createdOn,
             enable_delivery: input.enableDelivery,
             min_prep_time: parseInt(process.env.PETPOOJA_MIN_PREP_TIME ?? '20', 10),

@@ -45,6 +45,7 @@ interface OrderRequest {
   razorpayPaymentId?: string;
   razorpayOrderId?: string;
   razorpaySignature?: string;
+  description?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -411,6 +412,7 @@ export async function POST(req: NextRequest) {
     })(),
     items:       petpoojaItems,
     taxDetails,
+    description: body.description,
   });
 
   if (!result.success) {
