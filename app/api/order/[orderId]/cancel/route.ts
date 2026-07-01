@@ -27,7 +27,7 @@ export async function POST(
   }
 
   // Already in a terminal state
-  if (['cancelled', 'rejected', 'delivered'].includes(order.status)) {
+  if (['cancelled', 'rejected', 'delivered', 'dispatched', 'food_ready'].includes(order.status)) {
     return NextResponse.json(
       { success: false, error: `Order is already ${order.status}` },
       { status: 409 },

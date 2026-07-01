@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 const PREPARING_STATUSES = ["pending", "accepted", "preparing"];
-const READY_STATUSES     = ["ready", "food_ready"];
+const READY_STATUSES     = ["ready", "food_ready", "dispatched"];
 
 export async function GET() {
   const since = new Date(Date.now() - 8 * 60 * 60 * 1000);

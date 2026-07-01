@@ -37,11 +37,13 @@ function getInitials(name: string, email: string): string {
 
 function StatusBadge({ status }: { status: string }) {
     const map: Record<string, { label: string; cls: string }> = {
-        pending:    { label: "Pending",    cls: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
-        accepted:   { label: "Accepted",   cls: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
-        dispatched: { label: "On the Way", cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
-        delivered:  { label: "Delivered",  cls: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400" },
-        rejected:   { label: "Rejected",   cls: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" },
+        pending:    { label: "Pending",          cls: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
+        accepted:   { label: "Accepted",         cls: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+        food_ready: { label: "Ready for Pickup", cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+        dispatched: { label: "Ready for Pickup", cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+        delivered:  { label: "Picked Up",        cls: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400" },
+        rejected:   { label: "Rejected",         cls: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" },
+        cancelled:  { label: "Cancelled",        cls: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" },
     };
     const s = map[status] ?? { label: status, cls: "bg-slate-100 text-slate-600" };
     return (
