@@ -73,20 +73,41 @@ export async function POST(req: NextRequest) {
   const prepTime     = body.minimum_prep_time     ? Number(body.minimum_prep_time)     : null;
   const deliveryTime = body.minimum_delivery_time ? Number(body.minimum_delivery_time) : null;
 
+  // Status rank — higher rank wins; prevents out-of-order Petpooja callbacks
+  // from overwriting a terminal state (e.g. dispatched arriving after delivered).
+  const STATUS_RANK: Record<string, number> = {
+    pending:    0,
+    accepted:   1,
+    food_ready: 2,
+    dispatched: 3,
+    delivered:  4,
+    cancelled:  5,
+    rejected:   5,
+  };
+
   // Update Order.status first — no FK risk, always works if the order exists.
   try {
-    await prisma.order.updateMany({
-      where: { id: orderId },
-      data:  { status: internalStatus },
-    });
+    const current = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true } });
+    const currentRank  = STATUS_RANK[current?.status ?? ''] ?? -1;
+    const incomingRank = STATUS_RANK[internalStatus]        ?? -1;
 
-    // If the new status is cancelled or rejected, trigger automatic refund for online-paid orders
-    if (['cancelled', 'rejected'].includes(internalStatus)) {
-      try {
-        const { triggerRazorpayRefund } = await import('@/lib/refund');
-        await triggerRazorpayRefund(orderId, `Petpooja callback: Order ${internalStatus}`);
-      } catch (refundErr) {
-        console.error(`[callback] Failed to trigger automatic refund for ${orderId}:`, refundErr);
+    if (incomingRank < currentRank) {
+      console.warn(`[callback] Ignoring out-of-order status: ${internalStatus} (rank ${incomingRank}) after ${current?.status} (rank ${currentRank})`);
+    } else {
+      await prisma.order.update({
+        where: { id: orderId },
+        data:  { status: internalStatus },
+      });
+    }
+
+      // If the new status is cancelled or rejected, trigger automatic refund for online-paid orders
+      if (['cancelled', 'rejected'].includes(internalStatus)) {
+        try {
+          const { triggerRazorpayRefund } = await import('@/lib/refund');
+          await triggerRazorpayRefund(orderId, `Petpooja callback: Order ${internalStatus}`);
+        } catch (refundErr) {
+          console.error(`[callback] Failed to trigger automatic refund for ${orderId}:`, refundErr);
+        }
       }
     }
   } catch (err) {
