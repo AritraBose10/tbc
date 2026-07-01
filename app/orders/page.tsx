@@ -26,12 +26,13 @@ const STATUS_MAP: Record<string, { label: string; cls: string; icon: string }> =
     pending:    { label: "Pending",          icon: "schedule",       cls: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
     accepted:   { label: "Accepted",         icon: "thumb_up",       cls: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
     food_ready: { label: "Ready for Pickup", icon: "takeout_dining", cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+    dispatched: { label: "Ready for Pickup", icon: "takeout_dining", cls: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
     delivered:  { label: "Picked Up",        icon: "check_circle",   cls: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400" },
     rejected:   { label: "Rejected",         icon: "cancel",         cls: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" },
     cancelled:  { label: "Cancelled",        icon: "cancel",         cls: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" },
 };
 
-const ACTIVE = new Set(["pending", "accepted", "food_ready"]);
+const ACTIVE = new Set(["pending", "accepted", "food_ready", "dispatched"]);
 
 function StatusBadge({ status }: { status: string }) {
     const s = STATUS_MAP[status] ?? { label: status, icon: "info", cls: "bg-slate-100 text-slate-500" };
