@@ -31,7 +31,7 @@ export default function Checkout() {
     const [orderType, setOrderType] = useState<"H" | "P">("P");
 
     // Preparation preference — passed to Petpooja as order description
-    const [prepType, setPrepType] = useState<"Parcel" | "Ready to eat">("Parcel");
+    const [prepType, setPrepType] = useState<"Parcel" | "Dine In">("Parcel");
 
     // Payment method state
     const [paymentMethod, setPaymentMethod] = useState<"ONLINE">("ONLINE");
@@ -324,7 +324,7 @@ export default function Checkout() {
 
                 {/* Preparation Preference */}
                 <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl flex gap-1 relative shadow-inner">
-                    {(["Parcel", "Ready to eat"] as const).map((option) => (
+                    {(["Parcel", "Dine In"] as const).map((option) => (
                         <button
                             key={option}
                             onClick={() => setPrepType(option)}

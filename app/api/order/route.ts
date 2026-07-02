@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const VALID_DESCRIPTIONS = ['Parcel', 'Ready to eat'] as const;
+  const VALID_DESCRIPTIONS = ['Parcel', 'Dine In'] as const;
   if (body.description !== undefined && !VALID_DESCRIPTIONS.includes(body.description as typeof VALID_DESCRIPTIONS[number])) {
     return NextResponse.json({ success: false, error: 'Invalid description value.' }, { status: 400 });
   }
