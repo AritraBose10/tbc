@@ -7,6 +7,7 @@ type AdminMenuItem = {
   name: string;
   price: number;
   isAvailable: boolean;
+  isVisible: boolean;
   categoryId: string;
   categoryName: string;
 };
@@ -72,6 +73,28 @@ export default function AdminMenuItemsPage() {
       showToast(`${ids.length} item(s) turned ${available ? "ON" : "OFF"}`);
     } catch {
       showToast("Error updating items");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function toggleVisibility(item: AdminMenuItem) {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/menu-items", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ item_ids: [item.petpoojaId], visible: !item.isVisible }),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      setItems((prev) =>
+        prev.map((i) =>
+          i.petpoojaId === item.petpoojaId ? { ...i, isVisible: !item.isVisible } : i
+        )
+      );
+      showToast(`${item.name} ${!item.isVisible ? "shown in" : "hidden from"} app`);
+    } catch {
+      showToast("Error updating visibility");
     } finally {
       setSaving(false);
     }
@@ -248,15 +271,14 @@ export default function AdminMenuItemsPage() {
                   </th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600">Name</th>
                   <th className="w-24 px-4 py-3 text-center font-semibold text-gray-600">Price</th>
-                  <th className="w-28 px-4 py-3 text-center font-semibold text-gray-600">
-                    Available
-                  </th>
+                  <th className="w-28 px-4 py-3 text-center font-semibold text-gray-600">Available</th>
+                  <th className="w-28 px-4 py-3 text-center font-semibold text-gray-600">Show in App</th>
                 </tr>
               </thead>
               <tbody>
                 {visibleItems.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="py-12 text-center text-gray-400 text-sm">
+                    <td colSpan={5} className="py-12 text-center text-gray-400 text-sm">
                       No items
                     </td>
                   </tr>
@@ -292,6 +314,22 @@ export default function AdminMenuItemsPage() {
                         <span
                           className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
                             item.isAvailable ? "translate-x-6" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => toggleVisibility(item)}
+                        disabled={saving}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+                          item.isVisible ? "bg-blue-500" : "bg-gray-300"
+                        }`}
+                        title={item.isVisible ? "Visible — click to hide" : "Hidden — click to show"}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                            item.isVisible ? "translate-x-6" : "translate-x-1"
                           }`}
                         />
                       </button>

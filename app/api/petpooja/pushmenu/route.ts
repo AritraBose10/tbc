@@ -119,6 +119,7 @@ export async function POST(req: NextRequest) {
           categoryName,
           rawJson:      JSON.stringify(item),
           isAvailable:  true,
+          // isVisible intentionally omitted — admin toggles must survive re-syncs
         },
         create: {
           petpoojaId:   item.itemid,
@@ -127,6 +128,7 @@ export async function POST(req: NextRequest) {
           categoryId:   item.item_categoryid ?? '',
           categoryName,
           rawJson:      JSON.stringify(item),
+          isVisible:    true,
         },
       });
 

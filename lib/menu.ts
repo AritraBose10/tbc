@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function fetchMenuItems() {
   const rows = await prisma.menuItem.findMany({
+    where: { isVisible: true },
     include: { variants: true, addons: true },
     orderBy: [{ categoryName: 'asc' }, { name: 'asc' }],
   });

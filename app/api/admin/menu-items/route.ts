@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
       name: true,
       price: true,
       isAvailable: true,
+      isVisible: true,
       categoryId: true,
       categoryName: true,
     },
@@ -35,7 +36,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  let body: { item_ids: string[]; available: boolean };
+  let body: { item_ids: string[]; available?: boolean; visible?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -45,13 +46,17 @@ export async function PATCH(req: NextRequest) {
   if (!Array.isArray(body.item_ids) || body.item_ids.length === 0) {
     return NextResponse.json({ error: 'item_ids must be a non-empty array' }, { status: 400 });
   }
-  if (typeof body.available !== 'boolean') {
-    return NextResponse.json({ error: 'available must be a boolean' }, { status: 400 });
+  if (body.available === undefined && body.visible === undefined) {
+    return NextResponse.json({ error: 'available or visible must be provided' }, { status: 400 });
   }
+
+  const data: { isAvailable?: boolean; isVisible?: boolean } = {};
+  if (typeof body.available === 'boolean') data.isAvailable = body.available;
+  if (typeof body.visible   === 'boolean') data.isVisible   = body.visible;
 
   const result = await prisma.menuItem.updateMany({
     where: { petpoojaId: { in: body.item_ids } },
-    data: { isAvailable: body.available },
+    data,
   });
 
   return NextResponse.json({ updated: result.count });

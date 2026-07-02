@@ -25,6 +25,7 @@ model MenuItem {
   name         String
   price        Float
   isAvailable  Boolean       @default(true)
+  isVisible    Boolean       @default(true) // Controls visibility in app — not overwritten by push menu
   categoryId   String        @default("")
   categoryName String        @default("")
   rawJson      String                      // Full item JSON blob from Push Menu (for audit / debugging)

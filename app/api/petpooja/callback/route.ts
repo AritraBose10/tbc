@@ -98,7 +98,6 @@ export async function POST(req: NextRequest) {
         where: { id: orderId },
         data:  { status: internalStatus },
       });
-    }
 
       // If the new status is cancelled or rejected, trigger automatic refund for online-paid orders
       if (['cancelled', 'rejected'].includes(internalStatus)) {
