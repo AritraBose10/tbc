@@ -80,7 +80,7 @@ export default function Checkout() {
     const subtotal      = getSubtotal();
     const taxes         = getTax();
     const total         = getTotal();
-    const PARCEL_CHARGE = 15;
+    const PARCEL_CHARGE = 10;
     const parcelCharge  = prepType === "Parcel" ? PARCEL_CHARGE : 0;
     const grandTotal    = total + parcelCharge;
 

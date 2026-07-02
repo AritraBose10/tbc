@@ -329,7 +329,7 @@ export async function POST(req: NextRequest) {
   // GST is applied to the discounted amount, not the gross subtotal.
   const subtotal       = rawItems.reduce((s, i) => s + i.lineTotal, 0);
   const discount       = body.discount ?? 0;
-  const packingCharges = body.description === 'Parcel' ? 15 : 0;
+  const packingCharges = body.description === 'Parcel' ? 10 : 0;
   const taxableAmount  = subtotal - discount;
 
   const petpoojaItems: InputOrderItem[] = rawItems.map((raw) => {
