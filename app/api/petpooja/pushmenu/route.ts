@@ -27,10 +27,13 @@ export async function POST(req: NextRequest) {
     // Fall back to raw JSON for local testing.
     let body: PushMenuPayload;
     const contentType = req.headers.get('content-type') ?? '';
+    let topLevelAppKey: string | undefined;
 
     if (contentType.includes('application/x-www-form-urlencoded')) {
       const text = await req.text();
       const params = new URLSearchParams(text);
+      // app_key is a top-level form field, not inside the JSON data blob
+      topLevelAppKey = params.get('app_key') ?? undefined;
       const dataParam = params.get('data');
       if (!dataParam) throw new Error('[pushmenu] form body missing "data" field');
       body = JSON.parse(dataParam);
@@ -38,9 +41,10 @@ export async function POST(req: NextRequest) {
       body = await req.json();
     }
 
-    // Validate app_key against env secret
+    // Validate app_key — check top-level form field first, then inside JSON body
     const expectedKey = process.env.PETPOOJA_APP_KEY;
-    if (expectedKey && body.app_key !== expectedKey) {
+    const receivedKey = topLevelAppKey ?? body.app_key;
+    if (expectedKey && receivedKey !== expectedKey) {
       console.warn('[pushmenu] Invalid app_key — request rejected');
       return NextResponse.json({ status: '0', message: 'Unauthorized' }, { status: 401 });
     }
