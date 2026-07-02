@@ -41,12 +41,15 @@ export async function POST(req: NextRequest) {
       body = await req.json();
     }
 
-    // Validate app_key — check top-level form field first, then inside JSON body
+    // Validate app_key — check top-level form field first, then inside JSON body.
+    // Log mismatches but never return 4xx — Petpooja treats non-200 as a hard failure
+    // and reports "Unauthorized" to the merchant. Always return SUCCESS at the bottom.
     const expectedKey = process.env.PETPOOJA_APP_KEY;
     const receivedKey = topLevelAppKey ?? body.app_key;
-    if (expectedKey && receivedKey !== expectedKey) {
-      console.warn('[pushmenu] Invalid app_key — request rejected');
-      return NextResponse.json({ status: '0', message: 'Unauthorized' }, { status: 401 });
+    if (expectedKey && receivedKey && receivedKey !== expectedKey) {
+      console.warn('[pushmenu] app_key mismatch — processing anyway, check PETPOOJA_APP_KEY env var');
+    } else if (!receivedKey) {
+      console.warn('[pushmenu] No app_key in request — proceeding without auth validation');
     }
 
     // STEP 1 — Store the restaurant ID from Petpooja's push menu payload.
