@@ -249,10 +249,15 @@ export default function TrackOrder() {
                     <div className="absolute left-[27px] top-4 bottom-8 w-0.5 bg-gray-100 dark:bg-gray-800" />
                     <div className="space-y-8 relative">
                         {steps.map((step) => {
-                            // dispatched/food_ready = food is ready — treat step 3 as completed (green), not in-progress (orange)
+                            // Completed states show green — each POS action is a done event, not in-progress
+                            const isAccepted  = order && ['accepted', 'preparing'].includes(order.status);
                             const isReadyState = order && ['dispatched', 'food_ready'].includes(order.status);
-                            const isActive = currentStep === step.id && currentStep < 4 && !(isReadyState && step.id === 3);
-                            const isPast   = currentStep > step.id || (currentStep === 4 && step.id === 4) || (isReadyState && step.id <= 3);
+                            const isActive = currentStep === step.id && currentStep < 4
+                                && !(isAccepted  && step.id <= 2)
+                                && !(isReadyState && step.id <= 3);
+                            const isPast   = currentStep > step.id || (currentStep === 4 && step.id === 4)
+                                || (isAccepted  && step.id <= 2)
+                                || (isReadyState && step.id <= 3);
                             return (
                                 <div key={step.id} className="flex gap-5 relative z-10">
                                     <div className="flex flex-col items-center">
