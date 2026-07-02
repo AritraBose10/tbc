@@ -34,7 +34,7 @@ export default function Checkout() {
     const [prepType, setPrepType] = useState<"Parcel" | "Ready to eat">("Parcel");
 
     // Payment method state
-    const [paymentMethod, setPaymentMethod] = useState<"COD" | "ONLINE">("ONLINE");
+    const [paymentMethod, setPaymentMethod] = useState<"ONLINE">("ONLINE");
 
     // Load Razorpay script dynamically with local fallback
     const loadRazorpayScript = (): Promise<boolean> => {
@@ -129,51 +129,8 @@ export default function Checkout() {
                 ? "Takeaway / Self Pickup" 
                 : `Room ${selectedRoom}, ${floor?.name ?? selectedFloor}, ${building?.name ?? selectedBuilding}`;
 
-            if (paymentMethod === "COD") {
-                const res = await fetch("/api/order", {
-                    method:  "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        customer: {
-                            name:    customerName.trim(),
-                            address,
-                            mobile:  customerPhone.trim(),
-                            email:   "",
-                            latitude:  "",
-                            longitude: "",
-                        },
-                        items: items.map((item) => ({
-                            petpoojaId: item.id,
-                            name:       item.name,
-                            price:      item.price,
-                            quantity:   item.quantity,
-                            addons:     (item.addons ?? []).map((a) => ({
-                                petpoojaId: a.petpoojaId,
-                                name:       a.name,
-                                price:      a.price,
-                            })),
-                        })),
-                        paymentType:     "COD",
-                        orderType:       orderType,
-                        description:     prepType,
-                        packingCharges:  parcelCharge,
-                    }),
-                });
-
-                const data = await res.json();
-
-                if (!data.success) {
-                    throw new Error(data.error ?? "Order placement failed");
-                }
-
-                setSwiped(true);
-                clearCart();
-                setTimeout(() => {
-                    router.push(`/track/${data.orderId}`);
-                }, 1500);
-            } else {
-                // ONLINE PAYMENT FLOW
-                // 1. Load Razorpay Script
+            // ONLINE PAYMENT FLOW
+            // 1. Load Razorpay Script
                 const scriptLoaded = await loadRazorpayScript();
                 if (!scriptLoaded) {
                     throw new Error("Unable to load Razorpay payment gateway script. Please check your internet connection.");
@@ -306,7 +263,6 @@ export default function Checkout() {
 
                 const rzp = new (window as any).Razorpay(options);
                 rzp.open();
-            }
         } catch (err) {
             setError(err instanceof Error ? err.message : "Order placement failed. Please try again.");
             setPlacing(false);
@@ -617,39 +573,6 @@ export default function Checkout() {
                             </div>
                         </div>
 
-                        {/* Cash on Delivery */}
-                        <div
-                            onClick={() => { setPaymentMethod("COD"); setError(""); }}
-                            className={`flex items-start gap-3.5 rounded-2xl p-4 border transition-all duration-300 cursor-pointer ${
-                                paymentMethod === "COD"
-                                    ? "bg-primary/5 dark:bg-primary/10 border-primary shadow-[0_0_12px_rgba(244,112,20,0.12)]"
-                                    : "bg-slate-50/50 dark:bg-slate-800/30 border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700"
-                            }`}
-                        >
-                            <span className={`material-symbols-outlined text-2xl mt-0.5 transition-colors ${paymentMethod === "COD" ? "text-primary" : "text-slate-400 dark:text-slate-500"}`}>
-                                currency_rupee
-                            </span>
-                            <div className="flex-1">
-                                <p className={`font-bold text-sm leading-snug transition-colors ${paymentMethod === "COD" ? "text-slate-800 dark:text-white" : "text-slate-600 dark:text-slate-400"}`}>
-                                    Cash on Delivery (COD)
-                                </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Pay when your order is picked up
-                                </p>
-                            </div>
-                            <div className={`w-5.5 h-5.5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                                paymentMethod === "COD"
-                                    ? "border-primary"
-                                    : "border-slate-300 dark:border-slate-600"
-                            }`}>
-                                {paymentMethod === "COD" && (
-                                    <motion.div
-                                        layoutId="activePaymentIndicator"
-                                        className="w-3 h-3 bg-primary rounded-full"
-                                    />
-                                )}
-                            </div>
-                        </div>
                     </div>
                 </motion.section>
 
