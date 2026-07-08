@@ -44,7 +44,9 @@ export async function POST(req: NextRequest) {
 
   const rawInStock = bodyRaw.inStock;
   const isAvailable =
-    rawInStock !== undefined ? Boolean(rawInStock) : body.active !== '0';
+    rawInStock !== undefined
+      ? rawInStock !== '0' && rawInStock !== 0 && rawInStock !== false
+      : body.active !== '0';
 
   const updated = await prisma.menuItem.updateMany({
     where: { petpoojaId: { in: itemIds } },

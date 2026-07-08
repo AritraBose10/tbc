@@ -11,6 +11,7 @@ interface MenuItem {
     price: number;
     categoryName: string;
     isVeg: boolean;
+    isAvailable: boolean;
 }
 
 const CATEGORY_IMAGES: Record<string, string> = {
@@ -97,7 +98,11 @@ export default function ChefSpecials() {
                           <motion.div
                               key={item.petpoojaId}
                               whileHover={{ y: -4, transition: { duration: 0.25 } }}
-                              className="min-w-[220px] snap-center bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800"
+                              className={`min-w-[220px] snap-center bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm border ${
+                                  item.isAvailable
+                                      ? "border-slate-100 dark:border-slate-800"
+                                      : "border-slate-100 dark:border-slate-800 opacity-60"
+                              }`}
                           >
                               <Link href={`/dish/${item.petpoojaId}`} className="block">
                                   <div className="relative h-36 overflow-hidden">
@@ -110,6 +115,11 @@ export default function ChefSpecials() {
                                       <div className="absolute top-3 right-3 bg-white/90 p-1.5 rounded-full shadow-sm">
                                           <span className="material-symbols-outlined text-[14px] text-slate-400 block hover:text-red-500 transition-colors">favorite</span>
                                       </div>
+                                      {!item.isAvailable && (
+                                          <span className="absolute top-3 left-3 px-2 py-0.5 bg-red-500/90 text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm">
+                                              Sold Out
+                                          </span>
+                                      )}
                                   </div>
 
                                   <div className="p-3.5">
@@ -136,22 +146,28 @@ export default function ChefSpecials() {
                                               <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Price</span>
                                               <span className="text-slate-900 dark:text-white font-black text-sm">₹{item.price}</span>
                                           </div>
-                                          <motion.button
-                                              onClick={(e: React.MouseEvent) => {
-                                                  e.preventDefault();
-                                                  addItem({
-                                                      id: item.petpoojaId,
-                                                      name: item.name,
-                                                      price: item.price,
-                                                      quantity: 1,
-                                                  });
-                                              }}
-                                              whileHover={{ scale: 1.05 }}
-                                              whileTap={{ scale: 0.95 }}
-                                              className="text-[11px] font-bold text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 px-3 py-1.5 rounded-lg border border-red-100 dark:border-red-900/30"
-                                          >
-                                              ADD
-                                          </motion.button>
+                                          {item.isAvailable ? (
+                                              <motion.button
+                                                  onClick={(e: React.MouseEvent) => {
+                                                      e.preventDefault();
+                                                      addItem({
+                                                          id: item.petpoojaId,
+                                                          name: item.name,
+                                                          price: item.price,
+                                                          quantity: 1,
+                                                      });
+                                                  }}
+                                                  whileHover={{ scale: 1.05 }}
+                                                  whileTap={{ scale: 0.95 }}
+                                                  className="text-[11px] font-bold text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 px-3 py-1.5 rounded-lg border border-red-100 dark:border-red-900/30"
+                                              >
+                                                  ADD
+                                              </motion.button>
+                                          ) : (
+                                              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-lg uppercase tracking-widest">
+                                                  Sold Out
+                                              </span>
+                                          )}
                                       </div>
                                   </div>
                               </Link>

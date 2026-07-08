@@ -11,6 +11,7 @@ interface MenuItem {
     price: number;
     categoryName: string;
     isVeg: boolean;
+    isAvailable: boolean;
 }
 
 // Shared category → image map (keep in sync with ChefSpecials)
@@ -97,13 +98,18 @@ export default function RoyalPicks() {
                       ))
                     : items.map((item) => (
                           <motion.div key={item.petpoojaId} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
-                              <div className="group flex gap-4 rounded-2xl p-3 shadow-sm border border-slate-200 bg-white transition-all duration-300 hover:shadow-md">
+                              <div className={`group flex gap-4 rounded-2xl p-3 shadow-sm border border-slate-200 bg-white transition-all duration-300 hover:shadow-md ${item.isAvailable ? "" : "opacity-60"}`}>
                                   <Link href={`/dish/${item.petpoojaId}`} className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0">
                                       <img
                                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                           alt={item.name}
                                           src={getImage(item.categoryName)}
                                       />
+                                      {!item.isAvailable && (
+                                          <span className="absolute inset-x-0 bottom-0 py-0.5 bg-red-500/90 text-white text-center text-[8px] font-black uppercase tracking-widest">
+                                              Sold Out
+                                          </span>
+                                      )}
                                   </Link>
 
                                   <div className="flex-1 flex flex-col justify-center py-1">
@@ -117,6 +123,11 @@ export default function RoyalPicks() {
                                           <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: item.isVeg ? "#16a34a" : "#dc2626" }}>
                                               {item.isVeg ? "Veg" : "Non-Veg"}
                                           </span>
+                                          {!item.isAvailable && (
+                                              <span className="px-2 py-0.5 bg-red-100 text-red-500 rounded-full text-[9px] font-black uppercase tracking-widest">
+                                                  Sold Out
+                                              </span>
+                                          )}
                                       </div>
                                       <h6 className="font-extrabold text-sm leading-tight mb-1" style={{ color: "#111827" }}>
                                           {item.name}
@@ -128,14 +139,20 @@ export default function RoyalPicks() {
                                           <span className="font-black text-sm" style={{ color: "#002366" }}>
                                               ₹{item.price}
                                           </span>
-                                          <motion.button
-                                              onClick={() => addItem({ id: item.petpoojaId, name: item.name, price: item.price, quantity: 1 })}
-                                              whileHover={{ scale: 1.05 }}
-                                              whileTap={{ scale: 0.95 }}
-                                              className="text-[11px] font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100"
-                                          >
-                                              ADD
-                                          </motion.button>
+                                          {item.isAvailable ? (
+                                              <motion.button
+                                                  onClick={() => addItem({ id: item.petpoojaId, name: item.name, price: item.price, quantity: 1 })}
+                                                  whileHover={{ scale: 1.05 }}
+                                                  whileTap={{ scale: 0.95 }}
+                                                  className="text-[11px] font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100"
+                                              >
+                                                  ADD
+                                              </motion.button>
+                                          ) : (
+                                              <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg uppercase tracking-widest">
+                                                  Sold Out
+                                              </span>
+                                          )}
                                       </div>
                                   </div>
                               </div>
